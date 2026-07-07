@@ -26,7 +26,8 @@ Criar um controle simples, confiável e conferível para o estoque de botijões 
 - `docs/formula-estoque.md` — fórmula e lógica de movimentação do estoque.
 - `docs/canais-de-venda.md` — canais/personagens de venda.
 - `docs/modelo-lancamento.md` — campos, regras e exemplos práticos de lançamento.
-- `docs/integracao-ahgas-gasdelivery.md` — memória da integração AHGas/GasDelivery, API, endpoints e pendências técnicas.
+- `docs/integracao-ahgas-gasdelivery.md` — memória da integração AHGas/GasDelivery, API, endpoints e decisão técnica.
+- `docs/arquitetura-banco-proprio.md` — decisão estratégica de construir banco próprio do Projeto Fênix.
 - `docs/recuperacao-rapida.md` — resumo curto para recuperar o raciocínio do projeto.
 
 ## Princípio central
@@ -44,4 +45,13 @@ Portaria é canal de venda.
 
 ## Integração futura
 
-O projeto também mantém memória técnica sobre a possível integração com AHGas/GasDelivery para atendimento automático, consulta de cliente e criação de pedidos via WhatsApp/Bolt.
+O projeto também mantém memória técnica sobre a possível integração com AHGas/GasDelivery para atendimento automático e criação de pedidos via WhatsApp/Bolt.
+
+## Estratégia de independência
+
+```text
+O AHGas recebe o pedido.
+O Projeto Fênix constrói a inteligência.
+```
+
+Aos poucos, o Projeto Fênix deve construir seu próprio banco de dados e evoluir para um sistema próprio mais completo.
