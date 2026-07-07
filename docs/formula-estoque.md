@@ -12,27 +12,40 @@ Para cada produto, controlar separadamente:
 
 Produtos como botijão e água seguem a mesma lógica operacional quando houver controle de cheio e vazio.
 
-## 2. Fórmula geral
+## 2. Conceito comercial correto
+
+A operação não deve ser chamada de venda sem troca.
+
+O conceito correto é:
+
+- venda do líquido;
+- venda de casco.
+
+A venda normal é a venda do líquido: o cliente recebe o produto cheio e devolve o casco vazio.
+
+A venda de casco só pode existir se também existir venda do líquido junto. Ou seja: não se vende casco isolado. Quando há venda de casco, o cliente está comprando o produto cheio e também ficando com o casco.
+
+## 3. Fórmula geral
 
 Para cada produto:
 
 ```text
-estoque_cheio_final = estoque_cheio_inicial + entradas_cheias - vendas_por_troca - vendas_sem_troca
+estoque_cheio_final = estoque_cheio_inicial + entradas_cheias - vendas_liquido
 ```
 
 ```text
-estoque_vazio_final = estoque_vazio_inicial - entradas_cheias + vendas_por_troca
+estoque_vazio_final = estoque_vazio_inicial - entradas_cheias + vendas_liquido - vendas_casco
 ```
 
 ```text
 total_cascos = estoque_cheio + estoque_vazio
 ```
 
-A regra normal é que o total de cascos permaneça estável nas entradas e nas vendas por troca.
+Nas entradas e nas vendas apenas do líquido, o total de cascos permanece estável.
 
-A exceção operacional prevista nesta versão é a venda sem troca, porque nela sai um produto cheio e não retorna vazio/casco.
+Na venda de casco, o total de cascos diminui, porque o casco sai definitivamente da revenda junto com o produto cheio.
 
-## 3. Entrada de produto cheio
+## 4. Entrada de produto cheio
 
 Entrada significa chegada de botijão ou água cheia.
 
@@ -57,9 +70,9 @@ Resultado no total de cascos:
 total_cascos não muda
 ```
 
-## 4. Venda por troca
+## 5. Venda do líquido
 
-Na venda por troca, o cliente recebe cheio e devolve vazio/casco.
+Venda do líquido é a venda normal em que o cliente recebe o produto cheio e devolve o casco vazio.
 
 ```text
 cheio = cheio - quantidade_vendida
@@ -69,7 +82,7 @@ vazio = vazio + quantidade_vendida
 Exemplo:
 
 ```text
-Venda por troca de 8 P13
+Venda do líquido de 8 P13
 cheio = cheio - 8
 vazio = vazio + 8
 ```
@@ -80,34 +93,49 @@ Resultado no total de cascos:
 total_cascos não muda
 ```
 
-## 5. Venda sem troca
+## 6. Venda de casco
 
-Na venda sem troca, o cliente recebe o produto cheio e não entrega vazio/casco de volta.
+Venda de casco é a operação em que o cliente compra também o casco.
 
-Portanto:
+Regra obrigatória:
 
 ```text
-cheio = cheio - quantidade_vendida_sem_troca
-vazio = vazio
+venda_de_casco só pode existir junto com venda_do_liquido
+```
+
+Não deve existir venda de casco isolada.
+
+Na prática, quando há venda de casco, a operação completa é:
+
+```text
+venda_do_liquido:
+cheio = cheio - quantidade
+vazio = vazio + quantidade
+
+venda_de_casco:
+vazio = vazio - quantidade
+```
+
+Resultado final da operação completa:
+
+```text
+cheio = cheio - quantidade
+vazio não muda
+total_cascos = total_cascos - quantidade
 ```
 
 Exemplo:
 
 ```text
-Venda sem troca de 2 P13
+Venda de 2 P13 com venda de casco
 cheio = cheio - 2
-vazio = vazio
+vazio não muda
+total_cascos = total_cascos - 2
 ```
 
-Resultado no total de cascos:
+Essa movimentação precisa ficar separada da venda apenas do líquido, porque ela altera o total de cascos da revenda.
 
-```text
-total_cascos = total_cascos - quantidade_vendida_sem_troca
-```
-
-Essa movimentação precisa ficar separada da venda por troca, porque ela altera o total de cascos da revenda.
-
-## 6. Conferência física
+## 7. Conferência física
 
 No fechamento, o sistema deve comparar:
 
@@ -125,7 +153,7 @@ total_cascos_calculado x total_cascos_fisico
 
 Se houver divergência, gerar alerta de estoque inconsistente.
 
-## 7. Diagnóstico da divergência
+## 8. Diagnóstico da divergência
 
 O sistema deve tentar apontar onde o erro provavelmente ocorreu.
 
@@ -135,15 +163,16 @@ Exemplos de verificações:
 - venda lançada em produto errado;
 - entrada não lançada;
 - entrada lançada sem baixa correspondente de vazio;
-- venda por troca lançada como venda sem troca;
-- venda sem troca lançada como venda por troca;
+- venda do líquido lançada sem retorno de vazio;
+- venda de casco lançada sem venda do líquido correspondente;
+- venda de casco esquecida em uma operação em que o cliente ficou com o casco;
 - quantidade física incompatível com a movimentação do dia.
 
-## 8. Regra-mãe
+## 9. Regra-mãe
 
 ```text
 Entrada cheia aumenta cheio e diminui vazio na mesma quantidade.
-Venda por troca diminui cheio e aumenta vazio na mesma quantidade.
-Venda sem troca diminui cheio e não aumenta vazio.
-O total de cascos só muda na venda sem troca.
+Venda do líquido diminui cheio e aumenta vazio na mesma quantidade.
+Venda de casco só existe junto com venda do líquido.
+Venda de casco diminui o total de cascos da revenda.
 ```
