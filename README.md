@@ -27,6 +27,7 @@ Criar um controle simples, confiável e conferível para o estoque de botijões 
 - `docs/canais-de-venda.md` — canais/personagens de venda.
 - `docs/modelo-lancamento.md` — campos, regras e exemplos práticos de lançamento.
 - `docs/modelo-fechamento.md` — regras de conferência física e fechamento do estoque.
+- `docs/fluxo-celular-fechamento.md` — fluxo de tela para fechamento pelo celular.
 - `docs/integracao-ahgas-gasdelivery.md` — memória da integração AHGas/GasDelivery, API, endpoints e decisão técnica.
 - `docs/arquitetura-banco-proprio.md` — decisão estratégica de construir banco próprio do Projeto Fênix.
 - `docs/recuperacao-rapida.md` — resumo curto para recuperar o raciocínio do projeto.
