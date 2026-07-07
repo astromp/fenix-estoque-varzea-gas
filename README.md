@@ -11,6 +11,7 @@ Criar um controle simples, confiável e conferível para o estoque de botijões 
 - fechamento correto do estoque por turno/dia;
 - rastreabilidade dos lançamentos;
 - identificação de inconsistências;
+- relatórios de vendas por canal/personagem;
 - padronização da lógica para futuras revendas do Projeto Fênix Estoque.
 
 ## Unidade inicial
@@ -30,6 +31,7 @@ Criar um controle simples, confiável e conferível para o estoque de botijões 
 - `docs/fluxo-celular-fechamento.md` — fluxo de tela para fechamento pelo celular.
 - `docs/simulacao-operacao-fechamento.md` — exemplo prático de operação, fechamento e diagnóstico de divergência.
 - `docs/modelo-dados-estoque.md` — estrutura inicial de tabelas e regras do banco de dados do estoque.
+- `docs/relatorios-vendas.md` — armazenamento operacional e relatórios de vendas por canal de venda.
 - `docs/integracao-ahgas-gasdelivery.md` — memória da integração AHGas/GasDelivery, API, endpoints e decisão técnica.
 - `docs/arquitetura-banco-proprio.md` — decisão estratégica de construir banco próprio do Projeto Fênix.
 - `docs/recuperacao-rapida.md` — resumo curto para recuperar o raciocínio do projeto.
@@ -45,7 +47,17 @@ Entrada: cheio sobe, vazio desce.
 Venda do líquido: cheio desce, vazio sobe.
 Venda de casco: só existe junto com venda do líquido e reduz o total de cascos.
 Portaria é canal de venda.
+Toda venda precisa registrar canal de venda para permitir relatórios confiáveis.
 ```
+
+## Armazenamento e relatórios
+
+```text
+O GitHub guarda o projeto.
+O banco de dados guarda a operação real.
+```
+
+As vendas lançadas no sistema deverão alimentar relatórios diários, semanais, mensais e por período personalizado, sempre com filtro por revenda, produto e canal/personagem de venda.
 
 ## Integração futura
 
