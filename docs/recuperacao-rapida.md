@@ -20,7 +20,7 @@ cheio += quantidade
 vazio -= quantidade
 ```
 
-## Regra central das vendas
+## Regra central das vendas por troca
 
 Venda por troca significa que sai cheio e volta vazio/casco.
 
@@ -30,13 +30,33 @@ cheio -= quantidade
 vazio += quantidade
 ```
 
+## Regra da venda sem troca
+
+Venda sem troca significa que sai cheio e não volta vazio/casco.
+
+```text
+venda_sem_troca:
+cheio -= quantidade
+vazio não muda
+```
+
+Consequência:
+
+```text
+total_cascos -= quantidade
+```
+
+A venda sem troca deve ser lançada separadamente da venda por troca, porque ela muda o total de cascos da revenda.
+
 ## Regra de total de cascos
 
 ```text
 total_cascos = cheio + vazio
 ```
 
-O total de cascos deve permanecer estável, salvo ajuste autorizado.
+Nas entradas e vendas por troca, o total de cascos permanece estável.
+
+Na venda sem troca, o total de cascos diminui na quantidade vendida sem retorno de vazio/casco.
 
 ## Canais/personagens da Várzea Gás
 
