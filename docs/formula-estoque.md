@@ -17,18 +17,20 @@ Produtos como botijão e água seguem a mesma lógica operacional quando houver 
 Para cada produto:
 
 ```text
-estoque_cheio_final = estoque_cheio_inicial + entradas_cheias - saidas_cheias
+estoque_cheio_final = estoque_cheio_inicial + entradas_cheias - vendas_por_troca - vendas_sem_troca
 ```
 
 ```text
-estoque_vazio_final = estoque_vazio_inicial - entradas_cheias + retornos_vazios
+estoque_vazio_final = estoque_vazio_inicial - entradas_cheias + vendas_por_troca
 ```
 
 ```text
 total_cascos = estoque_cheio + estoque_vazio
 ```
 
-A regra desejada é que o total de cascos permaneça estável, salvo quando houver compra, perda, baixa, devolução definitiva ou ajuste autorizado.
+A regra normal é que o total de cascos permaneça estável nas entradas e nas vendas por troca.
+
+A exceção operacional prevista nesta versão é a venda sem troca, porque nela sai um produto cheio e não retorna vazio/casco.
 
 ## 3. Entrada de produto cheio
 
@@ -49,6 +51,12 @@ cheio = cheio + 12
 vazio = vazio - 12
 ```
 
+Resultado no total de cascos:
+
+```text
+total_cascos não muda
+```
+
 ## 4. Venda por troca
 
 Na venda por troca, o cliente recebe cheio e devolve vazio/casco.
@@ -61,12 +69,45 @@ vazio = vazio + quantidade_vendida
 Exemplo:
 
 ```text
-Venda de 8 P13
+Venda por troca de 8 P13
 cheio = cheio - 8
 vazio = vazio + 8
 ```
 
-## 5. Conferência física
+Resultado no total de cascos:
+
+```text
+total_cascos não muda
+```
+
+## 5. Venda sem troca
+
+Na venda sem troca, o cliente recebe o produto cheio e não entrega vazio/casco de volta.
+
+Portanto:
+
+```text
+cheio = cheio - quantidade_vendida_sem_troca
+vazio = vazio
+```
+
+Exemplo:
+
+```text
+Venda sem troca de 2 P13
+cheio = cheio - 2
+vazio = vazio
+```
+
+Resultado no total de cascos:
+
+```text
+total_cascos = total_cascos - quantidade_vendida_sem_troca
+```
+
+Essa movimentação precisa ficar separada da venda por troca, porque ela altera o total de cascos da revenda.
+
+## 6. Conferência física
 
 No fechamento, o sistema deve comparar:
 
@@ -78,9 +119,13 @@ estoque_calculado_cheio x estoque_fisico_cheio_informado
 estoque_calculado_vazio x estoque_fisico_vazio_informado
 ```
 
+```text
+total_cascos_calculado x total_cascos_fisico
+```
+
 Se houver divergência, gerar alerta de estoque inconsistente.
 
-## 6. Diagnóstico da divergência
+## 7. Diagnóstico da divergência
 
 O sistema deve tentar apontar onde o erro provavelmente ocorreu.
 
@@ -90,13 +135,15 @@ Exemplos de verificações:
 - venda lançada em produto errado;
 - entrada não lançada;
 - entrada lançada sem baixa correspondente de vazio;
-- venda lançada sem retorno correspondente de vazio;
+- venda por troca lançada como venda sem troca;
+- venda sem troca lançada como venda por troca;
 - quantidade física incompatível com a movimentação do dia.
 
-## 7. Regra-mãe
+## 8. Regra-mãe
 
 ```text
 Entrada cheia aumenta cheio e diminui vazio na mesma quantidade.
 Venda por troca diminui cheio e aumenta vazio na mesma quantidade.
-O total de cascos deve bater.
+Venda sem troca diminui cheio e não aumenta vazio.
+O total de cascos só muda na venda sem troca.
 ```
