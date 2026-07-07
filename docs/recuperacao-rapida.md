@@ -88,6 +88,25 @@ Portaria é canal de venda, igual aos demais.
 
 Não interpretar Portaria como portão físico, retirada, conferência ou etapa intermediária.
 
+## Decisão estratégica do Projeto Fênix
+
+Além do controle de estoque, ficou definido que o Projeto Fênix construirá seu próprio banco de dados.
+
+Regra de ouro:
+
+```text
+O AHGas recebe o pedido.
+O Projeto Fênix constrói a inteligência.
+```
+
+O banco próprio deve permitir, aos poucos:
+
+- reconhecer clientes;
+- guardar telefones e endereços;
+- registrar preferências;
+- manter histórico próprio;
+- enviar ao AHGas apenas o pedido final lançado.
+
 ## Fechamento
 
 O sistema deve cobrar a conferência física no encerramento.
@@ -103,9 +122,9 @@ Estoque inconsistente, revisar até corrigir.
 
 ## Próximos passos sugeridos
 
-1. Definir tela/fluxo de lançamento.
-2. Definir produtos iniciais.
-3. Definir campos mínimos de cada movimento.
+1. Desenhar o fechamento de estoque.
+2. Definir perguntas de conferência física por produto.
+3. Definir como o sistema aponta divergências.
 4. Criar protótipo simples.
 5. Testar com movimentações reais da Várzea Gás.
 6. Só depois replicar para outra revenda.
