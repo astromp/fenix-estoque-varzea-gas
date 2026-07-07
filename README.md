@@ -32,6 +32,7 @@ Criar um controle simples, confiável e conferível para o estoque de botijões 
 - `docs/simulacao-operacao-fechamento.md` — exemplo prático de operação, fechamento e diagnóstico de divergência.
 - `docs/modelo-dados-estoque.md` — estrutura inicial de tabelas e regras do banco de dados do estoque.
 - `docs/relatorios-vendas.md` — armazenamento operacional e relatórios de vendas por canal de venda.
+- `docs/modelo-telas-operacao-diaria.md` — desenho das telas para abertura, lançamentos, correções, fechamento e relatórios.
 - `docs/integracao-ahgas-gasdelivery.md` — memória da integração AHGas/GasDelivery, API, endpoints e decisão técnica.
 - `docs/arquitetura-banco-proprio.md` — decisão estratégica de construir banco próprio do Projeto Fênix.
 - `docs/recuperacao-rapida.md` — resumo curto para recuperar o raciocínio do projeto.
