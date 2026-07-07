@@ -20,33 +20,52 @@ cheio += quantidade
 vazio -= quantidade
 ```
 
-## Regra central das vendas por troca
+## Regra central da venda do líquido
 
-Venda por troca significa que sai cheio e volta vazio/casco.
+Venda do líquido é a venda normal em que o cliente recebe o produto cheio e devolve o casco vazio.
 
 ```text
-venda_por_troca:
+venda_do_liquido:
 cheio -= quantidade
 vazio += quantidade
-```
-
-## Regra da venda sem troca
-
-Venda sem troca significa que sai cheio e não volta vazio/casco.
-
-```text
-venda_sem_troca:
-cheio -= quantidade
-vazio não muda
 ```
 
 Consequência:
 
 ```text
+total_cascos não muda
+```
+
+## Regra da venda de casco
+
+A operação não deve ser chamada de venda sem troca.
+
+O nome correto é venda de casco.
+
+Venda de casco só pode existir se vender o líquido junto.
+
+Ou seja: não existe venda de casco isolada.
+
+Quando há venda de casco, a operação completa é:
+
+```text
+venda_do_liquido:
+cheio -= quantidade
+vazio += quantidade
+
+venda_de_casco:
+vazio -= quantidade
+```
+
+Resultado final:
+
+```text
+cheio -= quantidade
+vazio não muda
 total_cascos -= quantidade
 ```
 
-A venda sem troca deve ser lançada separadamente da venda por troca, porque ela muda o total de cascos da revenda.
+A venda de casco deve ser lançada separadamente da venda apenas do líquido, porque ela muda o total de cascos da revenda.
 
 ## Regra de total de cascos
 
@@ -54,9 +73,9 @@ A venda sem troca deve ser lançada separadamente da venda por troca, porque ela
 total_cascos = cheio + vazio
 ```
 
-Nas entradas e vendas por troca, o total de cascos permanece estável.
+Nas entradas e vendas apenas do líquido, o total de cascos permanece estável.
 
-Na venda sem troca, o total de cascos diminui na quantidade vendida sem retorno de vazio/casco.
+Na venda de casco, o total de cascos diminui na quantidade de cascos vendidos junto com o produto cheio.
 
 ## Canais/personagens da Várzea Gás
 
