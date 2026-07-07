@@ -6,7 +6,7 @@ Este documento registra o que já foi tratado sobre a possível integração ent
 
 Criar uma automação de atendimento e pedido que consiga operar com informações do sistema usado pela empresa, reduzindo dependência de atendimento manual.
 
-Objetivo desejado:
+Objetivo desejado inicialmente:
 
 ```text
 Cliente chama no WhatsApp
@@ -16,6 +16,8 @@ Cliente confirma produto e forma de pagamento
 Pedido é criado automaticamente
 Equipe recebe o pedido para entrega
 ```
+
+Após resposta da AHGas, esse objetivo precisa ser ajustado, porque a API pública disponível não permite consultas diretas de cliente, histórico, estoque ou preços.
 
 ## 2. Sistema envolvido
 
@@ -53,9 +55,60 @@ gd-group-hash: c5ef82ce2918a2cf2229ee62d3abfdbf
 
 Observação: a documentação de exemplo pode trazer outro hash demonstrativo. O hash acima foi o informado pelo usuário para a revenda e deve ser tratado como referência do projeto até validação técnica.
 
-## 5. Endpoints já identificados na documentação
+## 5. Resposta oficial da AHGas
 
-Endpoints citados/tratados:
+Em 2026-07-07, o usuário encaminhou a resposta recebida da AHGas.
+
+Resumo da resposta:
+
+- a documentação da Front API foi considerada a documentação disponível;
+- não há documentação complementar;
+- não há outra API disponível além da já encaminhada;
+- a única API disponibilizada para integração é a de criação de pedidos;
+- o endpoint disponível para esse fim é `POST /partner/order`;
+- o reconhecimento de clientes e tratamento dos pedidos é feito pelo próprio AHGas por meio desse endpoint;
+- quando o pedido é enviado ao AHGas pela API, o sistema identifica automaticamente se o cliente já possui cadastro;
+- se o cliente já existir, o pedido é vinculado ao cadastro correspondente;
+- se o cliente não existir, o sistema realiza o cadastro conforme as informações enviadas na requisição.
+
+Trecho conceitual importante da resposta:
+
+```text
+Atualmente, a única API disponibilizada para integração é a de criação de pedidos, por meio do método POST /partner/order.
+Todo o processo de reconhecimento de clientes e tratamento dos pedidos é realizado através desse endpoint.
+```
+
+## 6. Funcionalidades não disponíveis publicamente
+
+A AHGas informou que as seguintes funcionalidades não possuem endpoints públicos disponíveis para integração no momento:
+
+- consulta de clientes;
+- histórico de compras;
+- pedidos em andamento;
+- estoque;
+- preços;
+- atualização cadastral;
+- cancelamento de pedidos;
+- alteração de pedidos.
+
+## 7. Endpoint confirmado para integração
+
+Endpoint principal confirmado:
+
+```text
+POST /partner/order
+```
+
+Finalidade:
+
+- enviar/criar pedido no AHGas/GasDelivery;
+- permitir que o AHGas reconheça internamente se o cliente já existe;
+- vincular o pedido ao cliente existente, quando houver cadastro;
+- cadastrar novo cliente conforme as informações enviadas, quando não houver cadastro.
+
+## 8. Endpoints citados na documentação
+
+Endpoints citados/tratados anteriormente na documentação:
 
 ```text
 GET /product
@@ -77,7 +130,7 @@ Finalidade esperada:
 POST /partner/order
 ```
 
-Finalidade esperada:
+Finalidade confirmada:
 
 - criar pedido no ambiente GasDelivery/AHGas.
 
@@ -89,42 +142,52 @@ POST /partner/{hashid}/review
 GET /partner/{hashid}/means-of-payment
 ```
 
-## 6. Pontos que ainda precisam de confirmação técnica
+## 9. Consequência para o Projeto Fênix Atendimento/Bolt
 
-A documentação recebida indica caminhos para produtos, parceiros e criação de pedido, mas ainda precisamos confirmar com o técnico AHGas/GasDelivery se a API permite:
+A arquitetura do Fênix Atendimento/Bolt precisa considerar que o AHGas não funcionará como base consultiva aberta.
 
-- consultar cliente pelo telefone;
-- retornar cadastro completo do cliente;
-- retornar endereço do cliente;
-- retornar histórico de compras;
-- consultar pedidos em andamento;
-- alterar ou cancelar pedido;
-- consultar estoque disponível;
-- consultar preços por cidade/revenda;
-- atualizar cadastro do cliente;
-- ambiente de homologação/sandbox;
-- limites de uso, autenticação e segurança;
-- recomendação oficial para integrar IA/WhatsApp ao AHGas/GasDelivery.
+Portanto, o Bolt não poderá depender da AHGas para:
 
-## 7. Mensagem/assunto tratado com o suporte técnico
+- consultar cliente antes do pedido;
+- buscar histórico;
+- buscar endereço automaticamente antes de enviar pedido;
+- consultar estoque;
+- consultar preços;
+- alterar ou cancelar pedido por API pública.
 
-O contato com o suporte técnico deveria explicar que já temos a documentação `Front API - gasdelivery v1.0.5`, mas que precisamos confirmar se ela atende ao projeto de atendimento automático por WhatsApp.
-
-Pontos principais a solicitar ao técnico:
+O fluxo mais viável passa a ser:
 
 ```text
-1. Essa API permite criar pedidos automaticamente?
-2. Existe endpoint para consultar cliente pelo telefone?
-3. Existe endpoint para buscar cadastro, endereço e histórico do cliente?
-4. É possível consultar preços e produtos por cidade/revenda?
-5. É possível consultar estoque ou disponibilidade?
-6. É possível alterar/cancelar pedidos?
-7. Existe ambiente de homologação/sandbox?
-8. Qual é a forma correta de autenticação?
-9. A AHGas/GasDelivery recomenda algum fluxo oficial para integrar IA/WhatsApp?
+Cliente conversa com o Bolt no WhatsApp
+Bolt coleta os dados necessários do pedido
+Bolt envia o pedido completo para o AHGas via POST /partner/order
+AHGas identifica internamente se o cliente já existe
+AHGas vincula o pedido ao cadastro existente ou cria novo cadastro
+Equipe acompanha o pedido no AHGas/GasDelivery
 ```
 
-## 8. Relação com o Projeto Fênix
+## 10. Dados que o Bolt provavelmente precisará coletar
+
+Como a API não permite consulta prévia de cadastro, o Bolt deve coletar ou confirmar os dados necessários antes de enviar o pedido.
+
+Campos prováveis:
+
+- telefone do cliente;
+- nome;
+- endereço;
+- número;
+- complemento;
+- bairro;
+- cidade;
+- CEP, se necessário;
+- produto;
+- quantidade;
+- forma de pagamento;
+- observação para entrega.
+
+Observação: os campos exatos devem ser conferidos no corpo esperado pelo endpoint `POST /partner/order` da documentação.
+
+## 11. Relação com o Projeto Fênix Estoque
 
 A integração AHGas/GasDelivery não é a mesma coisa que o controle de estoque da Várzea Gás, mas faz parte do ecossistema maior do Projeto Fênix.
 
@@ -135,29 +198,39 @@ Fênix Estoque:
 controle interno de cheio, vazio/casco, venda do líquido, venda de casco e fechamento.
 
 Fênix Atendimento/Bolt:
-atendimento automático por WhatsApp, consulta de cliente e criação de pedido.
+atendimento automático por WhatsApp, coleta de dados do cliente e criação de pedido.
 
 Integração AHGas/GasDelivery:
-ponte técnica para consultar dados e registrar pedidos no sistema existente.
+ponte técnica limitada ao envio/criação de pedidos via POST /partner/order.
 ```
 
-## 9. Decisão operacional importante
+## 12. Decisão técnica atual
 
-Como a AHGas ainda não foi confirmada como fornecedora direta de um Bolt de WhatsApp, o projeto deve manter dois caminhos possíveis:
+A decisão técnica atual é:
 
 ```text
-Caminho A: integração oficial via API AHGas/GasDelivery, se houver suporte técnico suficiente.
-
-Caminho B: base própria intermediária do Projeto Fênix, caso a API não permita consultar clientes, histórico ou estoque da forma necessária.
+Não depender da AHGas para consultas.
+Usar a AHGas/GasDelivery como destino de criação de pedidos.
+Montar o Bolt para coletar dados suficientes e enviar o pedido completo.
 ```
 
-## 10. Próximo passo
+## 13. Caminhos possíveis
 
-Aguardar ou provocar resposta técnica da AHGas/GasDelivery sobre os pontos pendentes.
+Com a resposta da AHGas, o projeto deve trabalhar com dois caminhos:
 
-Depois da resposta, decidir:
+```text
+Caminho A: usar apenas POST /partner/order para criar pedidos no AHGas.
 
-- se seguimos com integração direta;
-- se montamos uma base intermediária;
-- se usamos exportação CSV/Excel de clientes como solução provisória;
-- se o pedido será apenas encaminhado ou registrado automaticamente no sistema.
+Caminho B: criar uma base intermediária do Projeto Fênix para consulta rápida de clientes, histórico, preferências e endereços, usando o AHGas apenas para receber o pedido final.
+```
+
+## 14. Próximo passo
+
+Analisar o corpo obrigatório do `POST /partner/order` na documentação para montar:
+
+- modelo de payload;
+- campos obrigatórios;
+- campos opcionais;
+- fluxo do Bolt no WhatsApp;
+- validações antes de enviar o pedido;
+- tratamento de erro quando o AHGas recusar ou não processar o pedido.
