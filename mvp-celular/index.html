@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Projeto Fênix Estoque — MVP Celular</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Projeto Fênix Estoque</p>
+        <h1>Várzea Gás</h1>
+      </div>
+      <span id="connectionBadge" class="badge badge-warn">Modo teste local</span>
+    </header>
+
+    <main>
+      <section id="screen-dashboard" class="screen active">
+        <div class="card hero">
+          <p class="eyebrow">Painel do dia</p>
+          <h2 id="todayLabel">Operação diária</h2>
+          <p id="dayStatusText" class="muted">Status: aguardando abertura da manhã.</p>
+        </div>
+
+        <div class="grid-actions">
+          <button class="action-card" data-nav="opening">
+            <strong>Abertura da manhã</strong>
+            <span>Contar cheios e vazios</span>
+          </button>
+          <button class="action-card" data-nav="sale">
+            <strong>Lançar venda</strong>
+            <span>Venda do líquido e casco</span>
+          </button>
+          <button class="action-card" data-nav="entry">
+            <strong>Lançar entrada</strong>
+            <span>Cheio entra, vazio sai</span>
+          </button>
+          <button class="action-card" data-nav="summary">
+            <strong>Resumo parcial</strong>
+            <span>Movimentos e estoque calculado</span>
+          </button>
+          <button class="action-card" data-nav="closing">
+            <strong>Fechamento da noite</strong>
+            <span>Contagem física final</span>
+          </button>
+          <button class="action-card secondary" id="resetDemoButton">
+            <strong>Reiniciar teste</strong>
+            <span>Limpar dados locais</span>
+          </button>
+        </div>
+
+        <div id="dashboardAlert" class="alert hidden"></div>
+      </section>
+
+      <section id="screen-opening" class="screen">
+        <div class="screen-title">
+          <button class="back-button" data-nav="dashboard">←</button>
+          <div>
+            <p class="eyebrow">Etapa 1</p>
+            <h2>Abertura da manhã</h2>
+          </div>
+        </div>
+
+        <div class="card">
+          <p>Informe a contagem física inicial. Sem abertura, o sistema bloqueia vendas e entradas.</p>
+          <div id="openingList" class="product-list"></div>
+          <button id="saveOpeningButton" class="primary-button">Confirmar abertura do dia</button>
+          <button id="fillOpeningExampleButton" class="ghost-button">Preencher exemplo validado</button>
+        </div>
+      </section>
+
+      <section id="screen-sale" class="screen">
+        <div class="screen-title">
+          <button class="back-button" data-nav="dashboard">←</button>
+          <div>
+            <p class="eyebrow">Etapa 2</p>
+            <h2>Lançar venda</h2>
+          </div>
+        </div>
+
+        <div class="card">
+          <label>Canal de venda</label>
+          <select id="saleChannel"></select>
+
+          <label>Produto</label>
+          <select id="saleProduct"></select>
+
+          <label>Quantidade vendida do líquido</label>
+          <input id="saleQty" type="number" min="1" inputmode="numeric" placeholder="Ex.: 10" />
+
+          <div class="switch-row">
+            <div>
+              <strong>Teve venda de casco?</strong>
+              <p class="muted">Casco só pode existir junto com venda do líquido.</p>
+            </div>
+            <button id="toggleCascoButton" class="toggle-button" aria-pressed="false">Não</button>
+          </div>
+
+          <div id="cascoField" class="hidden">
+            <label>Quantidade de cascos vendidos</label>
+            <input id="saleCascoQty" type="number" min="0" inputmode="numeric" placeholder="Ex.: 1" />
+          </div>
+
+          <button id="saveSaleButton" class="primary-button">Salvar venda</button>
+          <button id="saveSaleAnotherButton" class="ghost-button">Salvar e lançar outra</button>
+        </div>
+      </section>
+
+      <section id="screen-entry" class="screen">
+        <div class="screen-title">
+          <button class="back-button" data-nav="dashboard">←</button>
+          <div>
+            <p class="eyebrow">Etapa 3</p>
+            <h2>Lançar entrada</h2>
+          </div>
+        </div>
+
+        <div class="card">
+          <label>Produto</label>
+          <select id="entryProduct"></select>
+
+          <label>Quantidade de cheios que entrou</label>
+          <input id="entryQty" type="number" min="1" inputmode="numeric" placeholder="Ex.: 20" />
+
+          <p class="tip">Regra: cheio sobe e vazio desce na mesma quantidade.</p>
+
+          <button id="saveEntryButton" class="primary-button">Salvar entrada</button>
+        </div>
+      </section>
+
+      <section id="screen-summary" class="screen">
+        <div class="screen-title">
+          <button class="back-button" data-nav="dashboard">←</button>
+          <div>
+            <p class="eyebrow">Acompanhamento</p>
+            <h2>Resumo parcial</h2>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Estoque calculado</h3>
+          <div id="stockSummary" class="table-like"></div>
+        </div>
+
+        <div class="card">
+          <h3>Movimentos do dia</h3>
+          <div id="movementSummary" class="movement-list"></div>
+        </div>
+      </section>
+
+      <section id="screen-closing" class="screen">
+        <div class="screen-title">
+          <button class="back-button" data-nav="dashboard">←</button>
+          <div>
+            <p class="eyebrow">Etapa final</p>
+            <h2>Fechamento da noite</h2>
+          </div>
+        </div>
+
+        <div class="card">
+          <p>Conte o estoque físico final. O calculado só aparece depois da conferência.</p>
+          <div id="closingList" class="product-list"></div>
+          <button id="runClosingButton" class="primary-button">Conferir fechamento</button>
+        </div>
+
+        <div id="closingResult" class="card hidden"></div>
+      </section>
+    </main>
+
+    <div id="toast" class="toast hidden"></div>
+  </div>
+
+  <script src="./script.js"></script>
+</body>
+</html>
