@@ -1,0 +1,55 @@
+PROJETO FÊNIX ESTOQUE — VÁRZEA GÁS
+Operação Celular Integrada V3
+
+ARQUIVOS PRINCIPAIS
+
+index.html
+css/style.css
+js/app.js
+js/config.js
+js/config.example.js
+
+COMO TESTAR NO COMPUTADOR
+
+1. Abra a pasta do projeto.
+2. Abra o arquivo js/config.js.
+3. Substitua os placeholders:
+   - COLE_AQUI_A_URL_DO_SUPABASE
+   - COLE_AQUI_A_ANON_PUBLIC_KEY
+4. Salve o arquivo.
+5. Abra index.html no navegador.
+6. Clique em "Consultar status".
+
+ATENÇÃO DE SEGURANÇA
+
+Use apenas a chave anon public do Supabase.
+Nunca coloque no frontend:
+
+- service_role
+- senha do banco
+- DATABASE_URL
+- connection string
+
+REGRA DE OURO
+
+Estoque fechado, turno encerrado.
+Estoque inconsistente, revisar até corrigir.
+
+STATUS OPERACIONAIS
+
+sem abertura -> aberto -> fechado
+aberto -> inconsistente -> corrigido -> fechado
+
+FUNÇÕES SUPABASE USADAS PELO MVP
+
+registrar_abertura_mvp
+registrar_venda_mvp
+consultar_estoque_mvp
+registrar_fechamento_mvp
+registrar_correcao_venda_casco_mvp
+consultar_status_dia_mvp
+
+OBSERVAÇÃO
+
+O GitHub guarda o projeto e a memória técnica.
+O Supabase guarda a operação real.
