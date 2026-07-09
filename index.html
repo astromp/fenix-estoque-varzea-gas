@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Projeto Fênix Estoque — Várzea Gás</title>
+  <meta name="description" content="Operação celular integrada V3 do Projeto Fênix Estoque para a Várzea Gás." />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <main class="app-shell">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">Projeto Fênix Estoque</p>
+        <h1>Várzea Gás</h1>
+        <p class="hero-text">Operação celular integrada V3</p>
+      </div>
+      <div class="status-pill" id="statusPill">Aguardando consulta</div>
+    </header>
+
+    <section class="card card-primary">
+      <label for="dataOperacional">Data operacional</label>
+      <div class="inline-form">
+        <input id="dataOperacional" type="date" />
+        <button id="btnConsultarStatus" type="button">Consultar status</button>
+      </div>
+      <p class="hint">Consulte a data antes de lançar. O sistema libera apenas o que faz sentido para o status do dia.</p>
+    </section>
+
+    <section class="card status-card" id="painelStatus">
+      <h2>Status do dia</h2>
+      <p id="statusDescricao">Nenhuma data consultada ainda.</p>
+      <div class="status-grid">
+        <span data-step="sem_abertura">Sem abertura</span>
+        <span data-step="aberto">Aberto</span>
+        <span data-step="inconsistente">Inconsistente</span>
+        <span data-step="fechado">Fechado</span>
+      </div>
+    </section>
+
+    <section class="card action-card" data-panel="abertura">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Etapa 1</p>
+          <h2>Abertura da manhã</h2>
+        </div>
+        <span class="lock-label" data-lock="abertura">Bloqueado</span>
+      </div>
+      <p class="hint">Informe a contagem física inicial. Sem abertura, não existe operação do dia.</p>
+      <div id="aberturaProdutos" class="product-list"></div>
+      <button id="btnRegistrarAbertura" type="button" class="btn-wide">Confirmar abertura</button>
+    </section>
+
+    <section class="card action-card" data-panel="venda">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Etapa 2</p>
+          <h2>Lançar venda</h2>
+        </div>
+        <span class="lock-label" data-lock="venda">Bloqueado</span>
+      </div>
+      <label for="canalVenda">Canal de venda</label>
+      <select id="canalVenda"></select>
+
+      <label for="produtoVenda">Produto</label>
+      <select id="produtoVenda"></select>
+
+      <label for="qtdVenda">Quantidade vendida do produto cheio</label>
+      <input id="qtdVenda" type="number" min="1" inputmode="numeric" placeholder="Ex.: 10" />
+
+      <fieldset class="radio-box">
+        <legend>Tipo da venda</legend>
+        <label><input type="radio" name="tipoVenda" value="troca" checked /> Venda por troca</label>
+        <label><input type="radio" name="tipoVenda" value="sem_troca" /> Venda sem troca / casco</label>
+      </fieldset>
+
+      <div id="campoSemTroca" class="conditional-field hidden">
+        <label for="qtdSemTroca">Quantidade sem troca / casco</label>
+        <input id="qtdSemTroca" type="number" min="1" inputmode="numeric" placeholder="Ex.: 1" />
+        <p class="hint">Use quando parte da venda saiu sem retornar vazio/casco.</p>
+      </div>
+
+      <button id="btnRegistrarVenda" type="button" class="btn-wide">Salvar venda</button>
+    </section>
+
+    <section class="card action-card" data-panel="estoque">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Acompanhamento</p>
+          <h2>Estoque calculado</h2>
+        </div>
+      </div>
+      <p class="hint">Este resumo ajuda o responsável a acompanhar o dia. No fechamento, o colaborador deve contar antes de ver divergência.</p>
+      <button id="btnConsultarEstoque" type="button" class="btn-wide secondary">Consultar estoque</button>
+      <pre id="estoqueResultado" class="result-box">Sem consulta.</pre>
+    </section>
+
+    <section class="card action-card" data-panel="fechamento">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Etapa 3</p>
+          <h2>Fechamento da noite</h2>
+        </div>
+        <span class="lock-label" data-lock="fechamento">Bloqueado</span>
+      </div>
+      <p class="warning">Conte o estoque físico antes de encerrar. O sistema não mostra o esperado antes da contagem.</p>
+      <div id="fechamentoProdutos" class="product-list"></div>
+      <button id="btnRegistrarFechamento" type="button" class="btn-wide danger">Conferir fechamento</button>
+    </section>
+
+    <section class="card action-card" data-panel="correcao">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Revisão</p>
+          <h2>Correção guiada</h2>
+        </div>
+        <span class="lock-label" data-lock="correcao">Bloqueado</span>
+      </div>
+      <p class="hint">Use quando o fechamento indicar possível venda sem troca/casco não lançada.</p>
+      <label for="produtoCorrecao">Produto</label>
+      <select id="produtoCorrecao"></select>
+      <label for="canalCorrecao">Canal provável</label>
+      <select id="canalCorrecao"></select>
+      <label for="qtdCorrecao">Quantidade a corrigir</label>
+      <input id="qtdCorrecao" type="number" min="1" inputmode="numeric" placeholder="Ex.: 1" />
+      <label for="motivoCorrecao">Motivo</label>
+      <textarea id="motivoCorrecao" rows="3">Correção após divergência no fechamento.</textarea>
+      <button id="btnRegistrarCorrecao" type="button" class="btn-wide">Salvar correção</button>
+    </section>
+
+    <section class="card log-card">
+      <details open>
+        <summary>Mensagens da operação</summary>
+        <div id="mensagens" class="messages"></div>
+      </details>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
