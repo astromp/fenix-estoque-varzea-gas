@@ -1,6 +1,6 @@
 # Projeto Fênix Estoque — Várzea Gás
 
-Repositório criado para arquivar a memória técnica, as regras operacionais e a lógica de cálculo do controle de estoque da Várzea Gás.
+Repositório criado para arquivar a memória técnica, as regras operacionais, a lógica de cálculo e a estrutura publicável do controle de estoque da Várzea Gás.
 
 Este material serve como ponto de recuperação rápida caso alguma informação se perca durante o desenvolvimento.
 
@@ -19,7 +19,30 @@ Criar um controle simples, confiável e conferível para o estoque de botijões 
 - Revenda: Várzea Gás
 - Projeto: Fênix Estoque
 - Versão documental inicial: 1.0
+- Estrutura publicável consolidada: Operação Celular Integrada V3
 - Data de registro: 2026-07-07
+- Data de consolidação V3: 2026-07-09
+
+## Estrutura publicável V3
+
+```text
+index.html
+css/style.css
+js/app.js
+js/config.js
+js/config.example.js
+.gitignore
+LEIA-ME.txt
+```
+
+O arquivo `js/config.js` fica no GitHub apenas com placeholder. Para teste local, substituir:
+
+```text
+SUPABASE_URL: "COLE_AQUI_A_URL_DO_SUPABASE"
+SUPABASE_ANON_KEY: "COLE_AQUI_A_ANON_PUBLIC_KEY"
+```
+
+Nunca subir chave real, `service_role`, senha do banco, `DATABASE_URL` ou connection string.
 
 ## Documentos principais
 
@@ -36,6 +59,9 @@ Criar um controle simples, confiável e conferível para o estoque de botijões 
 - `docs/integracao-ahgas-gasdelivery.md` — memória da integração AHGas/GasDelivery, API, endpoints e decisão técnica.
 - `docs/arquitetura-banco-proprio.md` — decisão estratégica de construir banco próprio do Projeto Fênix.
 - `docs/recuperacao-rapida.md` — resumo curto para recuperar o raciocínio do projeto.
+- `docs/estrutura-publicavel-v3-08072026.md` — registro da estrutura publicável V3.
+- `docs/ponto-de-retomada-09072026.md` — ponto exato de retomada do projeto.
+- `docs/consolidacao-estrutura-publicavel-v3-09072026.md` — registro da consolidação feita no GitHub.
 
 ## Princípio central
 
@@ -45,8 +71,8 @@ O estoque deve bater. Se houver inconsistência, o sistema deve orientar o colab
 
 ```text
 Entrada: cheio sobe, vazio desce.
-Venda do líquido: cheio desce, vazio sobe.
-Venda de casco: só existe junto com venda do líquido e reduz o total de cascos.
+Venda por troca: cheio desce, vazio sobe.
+Venda sem troca/casco: cheio desce e reduz o total de cascos em posse da revenda.
 Portaria é canal de venda.
 Toda venda precisa registrar canal de venda para permitir relatórios confiáveis.
 ```
@@ -72,3 +98,10 @@ O Projeto Fênix constrói a inteligência.
 ```
 
 Aos poucos, o Projeto Fênix deve construir seu próprio banco de dados e evoluir para um sistema próprio mais completo.
+
+## Regra de ouro
+
+```text
+Estoque fechado, turno encerrado.
+Estoque inconsistente, revisar até corrigir.
+```
