@@ -1,0 +1,18 @@
+# Projeto Fênix Estoque
+# Nunca versionar segredos ou credenciais reais.
+
+.env
+.env.*
+*.local
+js/config.local.js
+
+# Dependências / builds futuros
+node_modules/
+dist/
+build/
+
+# Sistema operacional / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
