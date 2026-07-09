@@ -3,141 +3,209 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Projeto Fênix Estoque — Várzea Gás</title>
-  <meta name="description" content="Operação celular integrada V3 do Projeto Fênix Estoque para a Várzea Gás." />
-  <link rel="stylesheet" href="css/style.css" />
+  <title>Projeto Fênix Estoque — Operação Celular</title>
+  <link rel="stylesheet" href="./css/operacao-celular-v3.css" />
 </head>
 <body>
-  <main class="app-shell">
-    <header class="hero">
+  <div class="app-shell">
+    <header class="topbar">
       <div>
         <p class="eyebrow">Projeto Fênix Estoque</p>
-        <h1>Várzea Gás</h1>
-        <p class="hero-text">Operação celular integrada V3</p>
+        <h1>Operação Celular</h1>
       </div>
-      <div class="status-pill" id="statusPill">Aguardando consulta</div>
+      <span id="badge" class="badge badge-warn">Supabase</span>
     </header>
 
-    <section class="card card-primary">
-      <label for="dataOperacional">Data operacional</label>
-      <div class="inline-form">
-        <input id="dataOperacional" type="date" />
-        <button id="btnConsultarStatus" type="button">Consultar status</button>
-      </div>
-      <p class="hint">Consulte a data antes de lançar. O sistema libera apenas o que faz sentido para o status do dia.</p>
-    </section>
-
-    <section class="card status-card" id="painelStatus">
-      <h2>Status do dia</h2>
-      <p id="statusDescricao">Nenhuma data consultada ainda.</p>
-      <div class="status-grid">
-        <span data-step="sem_abertura">Sem abertura</span>
-        <span data-step="aberto">Aberto</span>
-        <span data-step="inconsistente">Inconsistente</span>
-        <span data-step="fechado">Fechado</span>
-      </div>
-    </section>
-
-    <section class="card action-card" data-panel="abertura">
-      <div class="section-heading">
-        <div>
-          <p class="eyebrow">Etapa 1</p>
-          <h2>Abertura da manhã</h2>
+    <main>
+      <section id="screen-dashboard" class="screen active">
+        <div class="card hero">
+          <p class="eyebrow">Várzea Gás</p>
+          <h2 id="dateTitle">Operação diária</h2>
+          <label>Data operacional</label>
+          <input id="operationDate" type="date" />
+          <p id="dashboardText" class="muted">Escolha uma etapa para operar.</p>
         </div>
-        <span class="lock-label" data-lock="abertura">Bloqueado</span>
-      </div>
-      <p class="hint">Informe a contagem física inicial. Sem abertura, não existe operação do dia.</p>
-      <div id="aberturaProdutos" class="product-list"></div>
-      <button id="btnRegistrarAbertura" type="button" class="btn-wide">Confirmar abertura</button>
-    </section>
 
-    <section class="card action-card" data-panel="venda">
-      <div class="section-heading">
-        <div>
-          <p class="eyebrow">Etapa 2</p>
-          <h2>Lançar venda</h2>
+        <div class="card">
+          <h3>Status do dia operacional</h3>
+          <div id="dayStatusPanel" class="status-panel">
+            <div class="status-line">
+              <strong>Status</strong>
+              <span class="warn">não consultado</span>
+            </div>
+          </div>
+          <button id="refreshStatusButton" class="ghost-button">Atualizar status do dia</button>
         </div>
-        <span class="lock-label" data-lock="venda">Bloqueado</span>
-      </div>
-      <label for="canalVenda">Canal de venda</label>
-      <select id="canalVenda"></select>
 
-      <label for="produtoVenda">Produto</label>
-      <select id="produtoVenda"></select>
-
-      <label for="qtdVenda">Quantidade vendida do produto cheio</label>
-      <input id="qtdVenda" type="number" min="1" inputmode="numeric" placeholder="Ex.: 10" />
-
-      <fieldset class="radio-box">
-        <legend>Tipo da venda</legend>
-        <label><input type="radio" name="tipoVenda" value="troca" checked /> Venda por troca</label>
-        <label><input type="radio" name="tipoVenda" value="sem_troca" /> Venda sem troca / casco</label>
-      </fieldset>
-
-      <div id="campoSemTroca" class="conditional-field hidden">
-        <label for="qtdSemTroca">Quantidade sem troca / casco</label>
-        <input id="qtdSemTroca" type="number" min="1" inputmode="numeric" placeholder="Ex.: 1" />
-        <p class="hint">Use quando parte da venda saiu sem retornar vazio/casco.</p>
-      </div>
-
-      <button id="btnRegistrarVenda" type="button" class="btn-wide">Salvar venda</button>
-    </section>
-
-    <section class="card action-card" data-panel="estoque">
-      <div class="section-heading">
-        <div>
-          <p class="eyebrow">Acompanhamento</p>
-          <h2>Estoque calculado</h2>
+        <div class="grid-actions">
+          <button class="action-card" data-nav="opening" data-action="opening">
+            <strong>Abertura da manhã</strong>
+            <span>Gravar contagem inicial</span>
+          </button>
+          <button class="action-card" data-nav="sale" data-action="sale">
+            <strong>Lançar venda</strong>
+            <span>Venda comum ou com casco</span>
+          </button>
+          <button class="action-card" data-nav="stock" data-action="stock">
+            <strong>Estoque calculado</strong>
+            <span>Consultar saldo esperado</span>
+          </button>
+          <button class="action-card" data-nav="closing" data-action="closing">
+            <strong>Fechamento</strong>
+            <span>Comparar físico x calculado</span>
+          </button>
+          <button class="action-card" data-nav="correction" data-action="correction">
+            <strong>Correção</strong>
+            <span>Corrigir divergência</span>
+          </button>
+          <button class="action-card" data-nav="log">
+            <strong>Histórico da tela</strong>
+            <span>Ver retornos do Supabase</span>
+          </button>
         </div>
-      </div>
-      <p class="hint">Este resumo ajuda o responsável a acompanhar o dia. No fechamento, o colaborador deve contar antes de ver divergência.</p>
-      <button id="btnConsultarEstoque" type="button" class="btn-wide secondary">Consultar estoque</button>
-      <pre id="estoqueResultado" class="result-box">Sem consulta.</pre>
-    </section>
+      </section>
 
-    <section class="card action-card" data-panel="fechamento">
-      <div class="section-heading">
-        <div>
-          <p class="eyebrow">Etapa 3</p>
-          <h2>Fechamento da noite</h2>
+      <section id="screen-opening" class="screen">
+        <div class="screen-title">
+          <button class="back-button" data-nav="dashboard">←</button>
+          <div>
+            <p class="eyebrow">Etapa 1</p>
+            <h2>Abertura da manhã</h2>
+          </div>
         </div>
-        <span class="lock-label" data-lock="fechamento">Bloqueado</span>
-      </div>
-      <p class="warning">Conte o estoque físico antes de encerrar. O sistema não mostra o esperado antes da contagem.</p>
-      <div id="fechamentoProdutos" class="product-list"></div>
-      <button id="btnRegistrarFechamento" type="button" class="btn-wide danger">Conferir fechamento</button>
-    </section>
-
-    <section class="card action-card" data-panel="correcao">
-      <div class="section-heading">
-        <div>
-          <p class="eyebrow">Revisão</p>
-          <h2>Correção guiada</h2>
+        <div class="card">
+          <p class="muted">Informe cheios e vazios da abertura. Para teste, use o exemplo validado.</p>
+          <div id="openingList" class="product-list"></div>
+          <button id="fillOpeningButton" class="ghost-button">Preencher exemplo validado</button>
+          <button id="saveOpeningButton" class="primary-button">Gravar abertura no Supabase</button>
         </div>
-        <span class="lock-label" data-lock="correcao">Bloqueado</span>
-      </div>
-      <p class="hint">Use quando o fechamento indicar possível venda sem troca/casco não lançada.</p>
-      <label for="produtoCorrecao">Produto</label>
-      <select id="produtoCorrecao"></select>
-      <label for="canalCorrecao">Canal provável</label>
-      <select id="canalCorrecao"></select>
-      <label for="qtdCorrecao">Quantidade a corrigir</label>
-      <input id="qtdCorrecao" type="number" min="1" inputmode="numeric" placeholder="Ex.: 1" />
-      <label for="motivoCorrecao">Motivo</label>
-      <textarea id="motivoCorrecao" rows="3">Correção após divergência no fechamento.</textarea>
-      <button id="btnRegistrarCorrecao" type="button" class="btn-wide">Salvar correção</button>
-    </section>
+      </section>
 
-    <section class="card log-card">
-      <details open>
-        <summary>Mensagens da operação</summary>
-        <div id="mensagens" class="messages"></div>
-      </details>
-    </section>
-  </main>
+      <section id="screen-sale" class="screen">
+        <div class="screen-title">
+          <button class="back-button" data-nav="dashboard">←</button>
+          <div>
+            <p class="eyebrow">Etapa 2</p>
+            <h2>Lançar venda</h2>
+          </div>
+        </div>
+        <div class="card">
+          <label>Canal de venda</label>
+          <select id="saleChannel"></select>
+          <label>Produto</label>
+          <select id="saleProduct"></select>
+          <label>Quantidade vendida do líquido</label>
+          <input id="saleQty" type="number" min="1" inputmode="numeric" placeholder="Ex.: 10" />
+
+          <div class="switch-row">
+            <div>
+              <strong>Teve venda de casco?</strong>
+              <p class="muted">Casco só pode existir junto com venda do líquido.</p>
+            </div>
+            <button id="toggleCascoButton" class="toggle-button" aria-pressed="false">Não</button>
+          </div>
+
+          <div id="cascoField" class="hidden">
+            <label>Quantidade de cascos vendidos</label>
+            <input id="cascoQty" type="number" min="0" inputmode="numeric" placeholder="Ex.: 1" />
+          </div>
+
+          <button id="quickPortariaButton" class="ghost-button">Portaria P13 — 10 sem casco</button>
+          <button id="quickJoaoButton" class="ghost-button">João P13 — 10 com 1 casco</button>
+          <button id="saveSaleButton" class="primary-button">Gravar venda</button>
+        </div>
+      </section>
+
+      <section id="screen-stock" class="screen">
+        <div class="screen-title">
+          <button class="back-button" data-nav="dashboard">←</button>
+          <div>
+            <p class="eyebrow">Acompanhamento</p>
+            <h2>Estoque calculado</h2>
+          </div>
+        </div>
+        <div class="card">
+          <button id="queryStockButton" class="primary-button">Consultar estoque no Supabase</button>
+        </div>
+        <div class="card">
+          <h3>Resultado</h3>
+          <div id="stockList"><p class="muted">Clique em consultar.</p></div>
+        </div>
+      </section>
+
+      <section id="screen-closing" class="screen">
+        <div class="screen-title">
+          <button class="back-button" data-nav="dashboard">←</button>
+          <div>
+            <p class="eyebrow">Etapa final</p>
+            <h2>Fechamento físico</h2>
+          </div>
+        </div>
+        <div class="card">
+          <p class="muted">Informe a contagem física final. O calculado aparece depois da conferência.</p>
+          <div id="closingList" class="product-list"></div>
+          <button id="fillClosingCalculatedButton" class="ghost-button">Preencher com estoque calculado</button>
+          <button id="simulateDivergenceButton" class="ghost-button">Simular divergência P13</button>
+          <button id="saveClosingButton" class="primary-button">Gravar fechamento</button>
+        </div>
+        <div class="card">
+          <h3>Itens do fechamento</h3>
+          <div id="closingItems"><p class="muted">O resultado aparecerá após gravar.</p></div>
+        </div>
+      </section>
+
+      <section id="screen-correction" class="screen">
+        <div class="screen-title">
+          <button class="back-button" data-nav="dashboard">←</button>
+          <div>
+            <p class="eyebrow">Correção</p>
+            <h2>Corrigir divergência</h2>
+          </div>
+        </div>
+        <div class="card">
+          <p class="tip">Use quando o dia estiver inconsistente. A correção registra venda do líquido + venda de casco, sem apagar histórico.</p>
+          <div class="two-cols">
+            <div>
+              <label>Canal</label>
+              <select id="correctionChannel"></select>
+            </div>
+            <div>
+              <label>Produto</label>
+              <select id="correctionProduct"></select>
+            </div>
+          </div>
+          <label>Quantidade</label>
+          <input id="correctionQty" type="number" min="1" value="1" inputmode="numeric" />
+          <button id="runCorrectionButton" class="primary-button">Registrar correção e refazer fechamento</button>
+        </div>
+        <div class="card">
+          <h3>Resultado da correção</h3>
+          <div id="correctionResult" class="table-like">
+            <div class="table-row"><strong>Status</strong><span class="warn">não executado</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="screen-log" class="screen">
+        <div class="screen-title">
+          <button class="back-button" data-nav="dashboard">←</button>
+          <div>
+            <p class="eyebrow">Retornos</p>
+            <h2>Histórico da tela</h2>
+          </div>
+        </div>
+        <div class="card">
+          <button id="clearLogButton" class="danger-button">Limpar histórico da tela</button>
+          <div id="logBox" class="result-box">Aguardando operação.</div>
+        </div>
+      </section>
+    </main>
+
+    <div id="toast" class="toast hidden"></div>
+  </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/config.js"></script>
-  <script src="js/app.js"></script>
+  <script src="./js/config.js"></script>
+  <script src="./js/operacao-celular-v3.js"></script>
 </body>
 </html>
