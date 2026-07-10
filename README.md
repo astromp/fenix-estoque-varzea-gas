@@ -20,10 +20,12 @@ Criar um controle simples, confiável e conferível para o estoque de botijões 
 - Projeto: Fênix Estoque
 - Versão documental inicial: 1.0
 - Estrutura publicável consolidada: Operação Celular Integrada V3
-- Marco operacional aprovado: V4.8 — Vendas do dia oficiais via Supabase
+- Marco operacional aprovado: V4.9 — Painel gerencial por dia e período
+- Marco anterior preservado: V4.8 — Vendas do dia oficiais via Supabase
 - Data de registro: 2026-07-07
 - Data de consolidação V3: 2026-07-09
 - Data de homologação V4.8: 2026-07-10
+- Data de homologação V4.9: 2026-07-10
 
 ## Estrutura publicável V3
 
@@ -65,6 +67,7 @@ Nunca subir chave real, `service_role`, senha do banco, `DATABASE_URL` ou connec
 - `docs/ponto-de-retomada-09072026.md` — ponto exato de retomada do projeto.
 - `docs/consolidacao-estrutura-publicavel-v3-09072026.md` — registro da consolidação feita no GitHub.
 - `docs/homologacao-v4.8-10072026.md` — homologação da consulta oficial de vendas do dia no Supabase.
+- `docs/homologacao-v4.9-10072026.md` — homologação do painel gerencial diário, semanal e por período personalizado.
 
 ## Marco V4.8
 
@@ -83,6 +86,54 @@ Na data operacional de 07/07/2026 foram confirmados:
 ```
 
 A tela identificou corretamente canais, produtos, líquido, casco, correções e horários, ignorando movimentos cancelados.
+
+## Marco V4.9
+
+A V4.9 acrescentou o painel gerencial sobre a base oficial homologada na V4.8.
+
+Foram aprovados três modos de consulta:
+
+```text
+Dia selecionado
+Últimos 7 dias
+Período personalizado
+```
+
+Testes homologados:
+
+- dia selecionado: 07/07/2026;
+- últimos 7 dias: 01/07/2026 a 07/07/2026;
+- período personalizado: 05/07/2026 a 07/07/2026.
+
+Nos três testes foram confirmados:
+
+```text
+5 lançamentos
+57 produtos vendidos
+2 cascos vendidos
+1 linha de correção
+```
+
+O painel apresentou totais coerentes por canal e por produto, sem duplicação visível e sem erros durante a homologação.
+
+Arquivo funcional principal:
+
+```text
+js/painel-gerencial-v4.9.js
+```
+
+A V4.9 está congelada como marco aprovado. Novas evoluções devem ocorrer em versão posterior.
+
+## Próxima etapa
+
+A próxima versão deverá evoluir o relatório gerencial sem alterar a V4.9 homologada. Prioridades sugeridas:
+
+- filtro por canal;
+- filtro por produto;
+- detalhamento diário dentro do período;
+- impressão ou exportação do relatório;
+- comparação entre períodos;
+- preparação para outras revendas.
 
 ## Princípio central
 
@@ -125,4 +176,5 @@ Aos poucos, o Projeto Fênix deve construir seu próprio banco de dados e evolui
 ```text
 Estoque fechado, turno encerrado.
 Estoque inconsistente, revisar até corrigir.
+Versão homologada, preservar antes de evoluir.
 ```
