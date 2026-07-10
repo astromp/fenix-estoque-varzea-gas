@@ -19,13 +19,14 @@ Criar um controle simples, confiável e conferível para o estoque de botijões 
 - Revenda: Várzea Gás
 - Projeto: Fênix Estoque
 - Estrutura publicável consolidada: Operação Celular Integrada V3
-- Marco operacional aprovado: V5.1 — comparação entre períodos e impressão gerencial
-- Marco anterior preservado: V5.0 — relatório gerencial com filtros, detalhamento e CSV
+- Marco operacional aprovado: V5.2 — gestão segura de canais por revenda
+- Marco anterior preservado: V5.1 — comparação entre períodos e impressão gerencial
 - Data de registro: 2026-07-07
 - Data de homologação V4.8: 2026-07-10
 - Data de homologação V4.9: 2026-07-10
 - Data de homologação V5.0: 2026-07-10
 - Data de homologação V5.1: 2026-07-10
+- Data de homologação V5.2: 2026-07-10
 
 ## Segurança da configuração
 
@@ -54,6 +55,7 @@ Nunca subir chave real, `service_role`, senha do banco, `DATABASE_URL` ou connec
 - `docs/homologacao-v4.9-10072026.md` — painel gerencial diário e por período.
 - `docs/homologacao-v5.0-10072026.md` — filtros, detalhamento e exportação CSV.
 - `docs/homologacao-v5.1-10072026.md` — comparação entre períodos e impressão gerencial.
+- `docs/homologacao-v5.2-10072026.md` — gestão segura de canais por revenda.
 
 ## Marco V4.8
 
@@ -187,6 +189,48 @@ js/comparacao-periodos-v5.1.js
 
 A V5.1 está congelada como marco aprovado.
 
+## Marco V5.2
+
+A V5.2 implantou a gestão segura de canais por revenda.
+
+Funções homologadas:
+
+```text
+listar_revendas_ativas
+listar_canais_revenda
+cadastrar_canal_revenda
+renomear_canal_revenda
+definir_status_canal_revenda
+excluir_canal_sem_historico
+```
+
+Testes aprovados:
+
+```text
+Cadastro de canal
+Renomeação
+Desativação
+Reativação
+Exclusão de canal sem histórico
+Bloqueio de exclusão de canal com histórico
+```
+
+A proteção foi confirmada ao tentar excluir Portaria. O sistema exibiu:
+
+```text
+Este canal possui histórico e não pode ser excluído. Desative-o.
+```
+
+Regra permanente:
+
+```text
+Canal com histórico nunca é apagado.
+Canal com histórico pode apenas ser desativado.
+Cada revenda possui seus próprios canais.
+```
+
+A V5.2 está homologada como marco oficial da gestão de canais por revenda.
+
 ## Regra multirrevenda
 
 Os canais de venda não são compartilhados automaticamente entre as revendas.
@@ -202,14 +246,15 @@ Cada unidade terá seus próprios usuários, lançamentos, estoque e relatórios
 
 ## Próxima etapa
 
-A próxima versão deverá evoluir sem alterar a V5.1 homologada. Prioridades:
+A próxima versão deverá evoluir sem alterar a V5.2 homologada. Prioridades:
 
+- cadastrar as demais revendas;
+- cadastrar os canais próprios de cada unidade;
+- adaptar consultas e telas para seleção de revenda;
+- garantir segregação completa dos dados por `revenda_id`;
 - melhorar o layout da impressão;
 - exportação PDF controlada pelo sistema;
-- seleção de revenda pela `revenda_id`;
-- carregamento dinâmico dos canais de cada unidade;
-- indicadores e gráficos gerenciais;
-- preparação multiunidade.
+- indicadores e gráficos gerenciais.
 
 ## Princípio central
 
