@@ -20,12 +20,13 @@ Criar um controle simples, confiável e conferível para o estoque de botijões 
 - Projeto: Fênix Estoque
 - Versão documental inicial: 1.0
 - Estrutura publicável consolidada: Operação Celular Integrada V3
-- Marco operacional aprovado: V4.9 — Painel gerencial por dia e período
-- Marco anterior preservado: V4.8 — Vendas do dia oficiais via Supabase
+- Marco operacional aprovado: V5.0 — Relatório gerencial com filtros, detalhamento e CSV
+- Marco anterior preservado: V4.9 — Painel gerencial por dia e período
 - Data de registro: 2026-07-07
 - Data de consolidação V3: 2026-07-09
 - Data de homologação V4.8: 2026-07-10
 - Data de homologação V4.9: 2026-07-10
+- Data de homologação V5.0: 2026-07-10
 
 ## Estrutura publicável V3
 
@@ -68,6 +69,7 @@ Nunca subir chave real, `service_role`, senha do banco, `DATABASE_URL` ou connec
 - `docs/consolidacao-estrutura-publicavel-v3-09072026.md` — registro da consolidação feita no GitHub.
 - `docs/homologacao-v4.8-10072026.md` — homologação da consulta oficial de vendas do dia no Supabase.
 - `docs/homologacao-v4.9-10072026.md` — homologação do painel gerencial diário, semanal e por período personalizado.
+- `docs/homologacao-v5.0-10072026.md` — homologação dos filtros, detalhamento diário e exportação CSV.
 
 ## Marco V4.8
 
@@ -122,18 +124,74 @@ Arquivo funcional principal:
 js/painel-gerencial-v4.9.js
 ```
 
-A V4.9 está congelada como marco aprovado. Novas evoluções devem ocorrer em versão posterior.
+## Marco V5.0
+
+A V5.0 acrescentou filtros e exportação sobre o painel gerencial homologado.
+
+Funcionalidades aprovadas:
+
+```text
+Filtro por canal
+Filtro por produto
+Detalhamento diário
+Exportação CSV
+```
+
+Teste geral em 07/07/2026:
+
+```text
+5 lançamentos
+57 produtos vendidos
+2 cascos vendidos
+1 linha de correção
+```
+
+Filtro Portaria:
+
+```text
+2 lançamentos
+15 produtos vendidos
+1 casco vendido
+1 linha de correção
+```
+
+Filtro P13 com todos os canais:
+
+```text
+4 lançamentos
+50 produtos vendidos
+1 casco vendido
+```
+
+Distribuição do P13:
+
+```text
+Portaria: 10
+Rogério: 20
+André: 10
+João: 10
+```
+
+Os arquivos CSV respeitaram os filtros e permaneceram coerentes com os totais exibidos na tela.
+
+Arquivo funcional principal:
+
+```text
+js/relatorio-gerencial-v5.0.js
+```
+
+A V5.0 está congelada como marco aprovado. Novas evoluções devem ocorrer em versão posterior.
 
 ## Próxima etapa
 
-A próxima versão deverá evoluir o relatório gerencial sem alterar a V4.9 homologada. Prioridades sugeridas:
+A próxima versão deverá evoluir a gestão sem alterar a V5.0 homologada. Prioridades sugeridas:
 
-- filtro por canal;
-- filtro por produto;
-- detalhamento diário dentro do período;
-- impressão ou exportação do relatório;
 - comparação entre períodos;
-- preparação para outras revendas.
+- impressão em formato gerencial;
+- exportação em PDF;
+- seleção de revenda;
+- preparação multiunidade;
+- indicadores e gráficos gerenciais.
 
 ## Princípio central
 
