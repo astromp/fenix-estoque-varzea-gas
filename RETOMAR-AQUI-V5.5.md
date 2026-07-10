@@ -58,23 +58,46 @@ Em 10/07/2026:
 - `docs/homologacao-v5.4-v5.5-multirrevenda-10072026.md`
 - `docs/homologacao-v5.6.2-login-seguro-10072026.md`
 
-## Próximo passo oficial
+## Tarefa oficial de amanhã — 11/07/2026
 
-Criar a operação de **entrada de carga cheia com saída equivalente de vazios**, mantendo a regra aprovada:
+Criar e testar a operação de **entrada de carga cheia com saída equivalente de vazios**.
+
+Regra obrigatória:
 
 ```text
 entrou cheio → aumenta cheio
 saiu vazio → diminui vazio
 mesma quantidade
+estoque total de cascos permanece estável
 ```
 
-Depois:
+Escopo de amanhã:
 
-1. publicar a aplicação em endereço HTTPS;
-2. iniciar o piloto na Várzea Gás;
-3. fazer a contagem física inicial no começo do primeiro dia;
-4. lançar as movimentações do mesmo dia normalmente;
-5. manter o controle atual em paralelo por cinco a sete dias;
-6. encerrar diariamente somente com estoque conferido.
+1. criar a função segura no banco exigindo `p_revenda_id` e usuário autorizado;
+2. criar a tela de entrada de carga;
+3. registrar produto e quantidade;
+4. gerar os dois movimentos vinculados: `entrada_cheia` e saída equivalente de vazios;
+5. impedir quantidade maior de vazios do que o saldo disponível;
+6. testar na Várzea Gás com dados de homologação;
+7. confirmar reflexo correto no estoque calculado e no fechamento;
+8. registrar a homologação no GitHub.
 
-**Não reconstruir as versões anteriores. Continuar exatamente da V5.6.2 homologada.**
+## Regra do estoque inicial
+
+O estoque inicial **não será lançado antes de tudo estar concluído**.
+
+O estoque inicial é o marco zero oficial. No momento em que ele for lançado, o controle começa imediatamente e todas as movimentações do mesmo dia deverão ser registradas no Fênix.
+
+Portanto, a sequência oficial será:
+
+1. concluir e homologar a entrada de carga;
+2. publicar a versão definitiva em HTTPS;
+3. confirmar o acesso do Alex;
+4. definir o momento exato de início;
+5. fazer a contagem física inicial da Várzea Gás;
+6. lançar o estoque inicial;
+7. iniciar o controle oficial no mesmo instante;
+8. manter o controle atual em paralelo por cinco a sete dias;
+9. encerrar cada dia somente com estoque conferido.
+
+**Não reconstruir as versões anteriores. Continuar exatamente da V5.6.2 homologada e iniciar pela entrada de carga.**
