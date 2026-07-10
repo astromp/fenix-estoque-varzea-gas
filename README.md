@@ -20,8 +20,10 @@ Criar um controle simples, confiável e conferível para o estoque de botijões 
 - Projeto: Fênix Estoque
 - Versão documental inicial: 1.0
 - Estrutura publicável consolidada: Operação Celular Integrada V3
+- Marco operacional aprovado: V4.8 — Vendas do dia oficiais via Supabase
 - Data de registro: 2026-07-07
 - Data de consolidação V3: 2026-07-09
+- Data de homologação V4.8: 2026-07-10
 
 ## Estrutura publicável V3
 
@@ -62,6 +64,25 @@ Nunca subir chave real, `service_role`, senha do banco, `DATABASE_URL` ou connec
 - `docs/estrutura-publicavel-v3-08072026.md` — registro da estrutura publicável V3.
 - `docs/ponto-de-retomada-09072026.md` — ponto exato de retomada do projeto.
 - `docs/consolidacao-estrutura-publicavel-v3-09072026.md` — registro da consolidação feita no GitHub.
+- `docs/homologacao-v4.8-10072026.md` — homologação da consulta oficial de vendas do dia no Supabase.
+
+## Marco V4.8
+
+A V4.8 foi homologada com consulta direta ao Supabase por meio da função:
+
+```text
+consultar_vendas_dia_mvp(p_data_operacional date)
+```
+
+Na data operacional de 07/07/2026 foram confirmados:
+
+```text
+5 lançamentos
+57 produtos vendidos
+2 cascos vendidos
+```
+
+A tela identificou corretamente canais, produtos, líquido, casco, correções e horários, ignorando movimentos cancelados.
 
 ## Princípio central
 
