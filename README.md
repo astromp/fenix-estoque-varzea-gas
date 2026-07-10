@@ -18,29 +18,18 @@ Criar um controle simples, confiável e conferível para o estoque de botijões 
 
 - Revenda: Várzea Gás
 - Projeto: Fênix Estoque
-- Versão documental inicial: 1.0
 - Estrutura publicável consolidada: Operação Celular Integrada V3
-- Marco operacional aprovado: V5.0 — Relatório gerencial com filtros, detalhamento e CSV
-- Marco anterior preservado: V4.9 — Painel gerencial por dia e período
+- Marco operacional aprovado: V5.1 — comparação entre períodos e impressão gerencial
+- Marco anterior preservado: V5.0 — relatório gerencial com filtros, detalhamento e CSV
 - Data de registro: 2026-07-07
-- Data de consolidação V3: 2026-07-09
 - Data de homologação V4.8: 2026-07-10
 - Data de homologação V4.9: 2026-07-10
 - Data de homologação V5.0: 2026-07-10
+- Data de homologação V5.1: 2026-07-10
 
-## Estrutura publicável V3
+## Segurança da configuração
 
-```text
-index.html
-css/style.css
-js/app.js
-js/config.js
-js/config.example.js
-.gitignore
-LEIA-ME.txt
-```
-
-O arquivo `js/config.js` fica no GitHub apenas com placeholder. Para teste local, substituir:
+O arquivo `js/config.js` deve permanecer no GitHub apenas com placeholder:
 
 ```text
 SUPABASE_URL: "COLE_AQUI_A_URL_DO_SUPABASE"
@@ -57,29 +46,24 @@ Nunca subir chave real, `service_role`, senha do banco, `DATABASE_URL` ou connec
 - `docs/modelo-lancamento.md` — campos, regras e exemplos práticos de lançamento.
 - `docs/modelo-fechamento.md` — regras de conferência física e fechamento do estoque.
 - `docs/fluxo-celular-fechamento.md` — fluxo de tela para fechamento pelo celular.
-- `docs/simulacao-operacao-fechamento.md` — exemplo prático de operação, fechamento e diagnóstico de divergência.
-- `docs/modelo-dados-estoque.md` — estrutura inicial de tabelas e regras do banco de dados do estoque.
-- `docs/relatorios-vendas.md` — armazenamento operacional e relatórios de vendas por canal de venda.
-- `docs/modelo-telas-operacao-diaria.md` — desenho das telas para abertura, lançamentos, correções, fechamento e relatórios.
-- `docs/integracao-ahgas-gasdelivery.md` — memória da integração AHGas/GasDelivery, API, endpoints e decisão técnica.
-- `docs/arquitetura-banco-proprio.md` — decisão estratégica de construir banco próprio do Projeto Fênix.
-- `docs/recuperacao-rapida.md` — resumo curto para recuperar o raciocínio do projeto.
-- `docs/estrutura-publicavel-v3-08072026.md` — registro da estrutura publicável V3.
-- `docs/ponto-de-retomada-09072026.md` — ponto exato de retomada do projeto.
-- `docs/consolidacao-estrutura-publicavel-v3-09072026.md` — registro da consolidação feita no GitHub.
-- `docs/homologacao-v4.8-10072026.md` — homologação da consulta oficial de vendas do dia no Supabase.
-- `docs/homologacao-v4.9-10072026.md` — homologação do painel gerencial diário, semanal e por período personalizado.
-- `docs/homologacao-v5.0-10072026.md` — homologação dos filtros, detalhamento diário e exportação CSV.
+- `docs/modelo-dados-estoque.md` — estrutura inicial de tabelas e regras do banco de dados.
+- `docs/relatorios-vendas.md` — armazenamento operacional e relatórios de vendas.
+- `docs/arquitetura-banco-proprio.md` — decisão estratégica de construir banco próprio.
+- `docs/recuperacao-rapida.md` — resumo para recuperar o raciocínio do projeto.
+- `docs/homologacao-v4.8-10072026.md` — vendas oficiais do dia via Supabase.
+- `docs/homologacao-v4.9-10072026.md` — painel gerencial diário e por período.
+- `docs/homologacao-v5.0-10072026.md` — filtros, detalhamento e exportação CSV.
+- `docs/homologacao-v5.1-10072026.md` — comparação entre períodos e impressão gerencial.
 
 ## Marco V4.8
 
-A V4.8 foi homologada com consulta direta ao Supabase por meio da função:
+Consulta oficial ao Supabase por meio da função:
 
 ```text
 consultar_vendas_dia_mvp(p_data_operacional date)
 ```
 
-Na data operacional de 07/07/2026 foram confirmados:
+Em 07/07/2026 foram confirmados:
 
 ```text
 5 lançamentos
@@ -87,13 +71,9 @@ Na data operacional de 07/07/2026 foram confirmados:
 2 cascos vendidos
 ```
 
-A tela identificou corretamente canais, produtos, líquido, casco, correções e horários, ignorando movimentos cancelados.
-
 ## Marco V4.9
 
-A V4.9 acrescentou o painel gerencial sobre a base oficial homologada na V4.8.
-
-Foram aprovados três modos de consulta:
+Painel gerencial aprovado nos modos:
 
 ```text
 Dia selecionado
@@ -101,13 +81,7 @@ Dia selecionado
 Período personalizado
 ```
 
-Testes homologados:
-
-- dia selecionado: 07/07/2026;
-- últimos 7 dias: 01/07/2026 a 07/07/2026;
-- período personalizado: 05/07/2026 a 07/07/2026.
-
-Nos três testes foram confirmados:
+Totais confirmados:
 
 ```text
 5 lançamentos
@@ -116,17 +90,13 @@ Nos três testes foram confirmados:
 1 linha de correção
 ```
 
-O painel apresentou totais coerentes por canal e por produto, sem duplicação visível e sem erros durante a homologação.
-
-Arquivo funcional principal:
+Arquivo principal:
 
 ```text
 js/painel-gerencial-v4.9.js
 ```
 
 ## Marco V5.0
-
-A V5.0 acrescentou filtros e exportação sobre o painel gerencial homologado.
 
 Funcionalidades aprovadas:
 
@@ -135,15 +105,6 @@ Filtro por canal
 Filtro por produto
 Detalhamento diário
 Exportação CSV
-```
-
-Teste geral em 07/07/2026:
-
-```text
-5 lançamentos
-57 produtos vendidos
-2 cascos vendidos
-1 linha de correção
 ```
 
 Filtro Portaria:
@@ -163,35 +124,92 @@ Filtro P13 com todos os canais:
 1 casco vendido
 ```
 
-Distribuição do P13:
-
-```text
-Portaria: 10
-Rogério: 20
-André: 10
-João: 10
-```
-
-Os arquivos CSV respeitaram os filtros e permaneceram coerentes com os totais exibidos na tela.
-
-Arquivo funcional principal:
+Arquivo principal:
 
 ```text
 js/relatorio-gerencial-v5.0.js
 ```
 
-A V5.0 está congelada como marco aprovado. Novas evoluções devem ocorrer em versão posterior.
+## Marco V5.1
+
+A V5.1 acrescentou:
+
+```text
+Comparação entre dois períodos
+Diferença absoluta
+Variação percentual
+Comparação por canal
+Comparação por produto
+Impressão gerencial
+```
+
+Teste homologado:
+
+```text
+Período A: 06/07/2026
+Período B: 07/07/2026
+```
+
+Resultado do período B:
+
+```text
+5 lançamentos
+57 produtos vendidos
+2 cascos vendidos
+1 linha de correção
+```
+
+Comparação por canal:
+
+```text
+André: 10 produtos, 0 cascos
+João: 10 produtos, 1 casco
+Portaria: 15 produtos, 1 casco
+Rogério: 22 produtos, 0 cascos
+```
+
+Comparação por produto:
+
+```text
+P05: 1 produto, 0 cascos
+P13: 50 produtos, 1 casco
+P20: 2 produtos, 0 cascos
+P45: 4 produtos, 1 casco
+```
+
+A impressão em PDF foi validada quanto ao conteúdo e aos cálculos. O cabeçalho e o rodapé automáticos do navegador poderão ser refinados em versão posterior.
+
+Arquivo principal:
+
+```text
+js/comparacao-periodos-v5.1.js
+```
+
+A V5.1 está congelada como marco aprovado.
+
+## Regra multirrevenda
+
+Os canais de venda não são compartilhados automaticamente entre as revendas.
+
+```text
+Cada revenda possui seus próprios canais.
+Os canais devem ser carregados conforme a revenda_id.
+Portaria, Rogério, André e João pertencem à Várzea Gás.
+Outras revendas terão outros canais e personagens.
+```
+
+Cada unidade terá seus próprios usuários, lançamentos, estoque e relatórios.
 
 ## Próxima etapa
 
-A próxima versão deverá evoluir a gestão sem alterar a V5.0 homologada. Prioridades sugeridas:
+A próxima versão deverá evoluir sem alterar a V5.1 homologada. Prioridades:
 
-- comparação entre períodos;
-- impressão em formato gerencial;
-- exportação em PDF;
-- seleção de revenda;
-- preparação multiunidade;
-- indicadores e gráficos gerenciais.
+- melhorar o layout da impressão;
+- exportação PDF controlada pelo sistema;
+- seleção de revenda pela `revenda_id`;
+- carregamento dinâmico dos canais de cada unidade;
+- indicadores e gráficos gerenciais;
+- preparação multiunidade.
 
 ## Princípio central
 
@@ -203,31 +221,16 @@ O estoque deve bater. Se houver inconsistência, o sistema deve orientar o colab
 Entrada: cheio sobe, vazio desce.
 Venda por troca: cheio desce, vazio sobe.
 Venda sem troca/casco: cheio desce e reduz o total de cascos em posse da revenda.
-Portaria é canal de venda.
+Portaria é canal de venda da Várzea Gás.
 Toda venda precisa registrar canal de venda para permitir relatórios confiáveis.
 ```
 
-## Armazenamento e relatórios
+## Armazenamento
 
 ```text
 O GitHub guarda o projeto.
 O banco de dados guarda a operação real.
 ```
-
-As vendas lançadas no sistema deverão alimentar relatórios diários, semanais, mensais e por período personalizado, sempre com filtro por revenda, produto e canal/personagem de venda.
-
-## Integração futura
-
-O projeto também mantém memória técnica sobre a possível integração com AHGas/GasDelivery para atendimento automático e criação de pedidos via WhatsApp/Bolt.
-
-## Estratégia de independência
-
-```text
-O AHGas recebe o pedido.
-O Projeto Fênix constrói a inteligência.
-```
-
-Aos poucos, o Projeto Fênix deve construir seu próprio banco de dados e evoluir para um sistema próprio mais completo.
 
 ## Regra de ouro
 
