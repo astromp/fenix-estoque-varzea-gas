@@ -1,33 +1,35 @@
--- Projeto Fênix Estoque — V5.3
+-- Projeto Fênix Estoque — V5.3 CORRIGIDO
 -- Cadastro idempotente das novas revendas e seus canais.
+-- Usa somente as colunas reais da tabela revendas:
+-- id, nome, cidade, ativa, created_at, updated_at.
 -- Preserva integralmente a Várzea Gás e seu histórico.
 
 begin;
 
 -- 1) REVENDAS
-insert into public.revendas (nome, cidade, estado, ativa)
-select 'Vinhedo Gás', 'Vinhedo', 'SP', true
+insert into public.revendas (nome, cidade, ativa)
+select 'Vinhedo Gás', 'Vinhedo/SP', true
 where not exists (
   select 1 from public.revendas r
   where lower(trim(r.nome)) = lower('Vinhedo Gás')
 );
 
-insert into public.revendas (nome, cidade, estado, ativa)
-select 'Itatiba Gás', 'Itatiba', 'SP', true
+insert into public.revendas (nome, cidade, ativa)
+select 'Itatiba Gás', 'Itatiba/SP', true
 where not exists (
   select 1 from public.revendas r
   where lower(trim(r.nome)) = lower('Itatiba Gás')
 );
 
-insert into public.revendas (nome, cidade, estado, ativa)
-select 'Vicensio Caxambu', 'Jundiaí', 'SP', true
+insert into public.revendas (nome, cidade, ativa)
+select 'Vicensio Caxambu', 'Jundiaí/SP', true
 where not exists (
   select 1 from public.revendas r
   where lower(trim(r.nome)) = lower('Vicensio Caxambu')
 );
 
-insert into public.revendas (nome, cidade, estado, ativa)
-select 'Vicensio 14', 'Jundiaí', 'SP', true
+insert into public.revendas (nome, cidade, ativa)
+select 'Vicensio 14', 'Jundiaí/SP', true
 where not exists (
   select 1 from public.revendas r
   where lower(trim(r.nome)) = lower('Vicensio 14')
@@ -141,7 +143,6 @@ select
   r.id as revenda_id,
   r.nome as revenda,
   r.cidade,
-  r.estado,
   r.ativa,
   count(cv.id) as total_canais,
   count(cv.id) filter (where cv.ativo = true) as canais_ativos,
@@ -155,7 +156,7 @@ where lower(trim(r.nome)) in (
   lower('Vicensio Caxambu'),
   lower('Vicensio 14')
 )
-group by r.id, r.nome, r.cidade, r.estado, r.ativa
+group by r.id, r.nome, r.cidade, r.ativa
 order by r.nome;
 
 select
