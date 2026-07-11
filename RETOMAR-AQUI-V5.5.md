@@ -1,9 +1,10 @@
 # RETOMAR AQUI — Projeto Fênix Estoque
 
-**Versão atual homologada:** V5.6.2  
-**Data:** 10/07/2026
+**Versão homologada em produção:** V5.6.2  
+**Evolução em implementação:** V5.7 — entrada de carga  
+**Data:** 11/07/2026
 
-## Estado do projeto
+## Estado homologado
 
 - V5.4 operação multi-revenda homologada.
 - V5.5 relatórios multi-revenda homologados.
@@ -36,31 +37,19 @@ anon_pode_executar = false
 public_pode_executar = false
 ```
 
-A tela autenticada mostrou corretamente:
+## V5.7 — entrada de carga criada no GitHub
 
-- `Alex · operador/conferente`;
-- botão Sair;
-- Várzea Gás selecionada automaticamente e bloqueada;
-- sessão conectada;
-- status do dia consultado corretamente;
-- opção Mostrar/Ocultar senha.
+Em 11/07/2026 foram criados:
 
-## Evidência multi-revenda principal
+- `sql/v5.7-entrada-carga-etapa-1-tipos.sql`;
+- `sql/v5.7-entrada-carga-etapa-2-funcao.sql`;
+- `docs/implementacao-v5.7-entrada-carga-11072026.md`.
 
-Em 10/07/2026:
+Função criada:
 
-- Várzea Gás: fechado, 2 lançamentos, 3 movimentos.
-- Vinhedo Gás: fechado, 1 lançamento, 1 movimento.
-
-## Arquivos essenciais
-
-- `sql/funcoes-operacionais-multirrevenda-v5.4.sql`
-- `docs/homologacao-v5.4-v5.5-multirrevenda-10072026.md`
-- `docs/homologacao-v5.6.2-login-seguro-10072026.md`
-
-## Tarefa oficial de amanhã — 11/07/2026
-
-Criar e testar a operação de **entrada de carga cheia com saída equivalente de vazios**.
+```text
+registrar_entrada_carga_mvp(uuid, date, text, integer)
+```
 
 Regra obrigatória:
 
@@ -71,16 +60,39 @@ mesma quantidade
 estoque total de cascos permanece estável
 ```
 
-Escopo de amanhã:
+Cada entrada gera um lançamento e dois movimentos vinculados:
 
-1. criar a função segura no banco exigindo `p_revenda_id` e usuário autorizado;
-2. criar a tela de entrada de carga;
-3. registrar produto e quantidade;
-4. gerar os dois movimentos vinculados: `entrada_cheia` e saída equivalente de vazios;
-5. impedir quantidade maior de vazios do que o saldo disponível;
-6. testar na Várzea Gás com dados de homologação;
-7. confirmar reflexo correto no estoque calculado e no fechamento;
-8. registrar a homologação no GitHub.
+```text
+entrada_cheia
+saida_vazio
+```
+
+Proteções incluídas:
+
+1. usuário autenticado;
+2. autorização para a revenda;
+3. dia operacional aberto;
+4. produto ativo e permitido;
+5. quantidade maior que zero;
+6. saldo suficiente de vazios;
+7. execução somente por `authenticated`.
+
+## Ponto exato para continuar
+
+A V5.7 ainda **não está homologada**, porque os SQLs precisam ser executados no Supabase e testados com dados de homologação.
+
+Sequência:
+
+1. executar `sql/v5.7-entrada-carga-etapa-1-tipos.sql` sozinho;
+2. executar `sql/v5.7-entrada-carga-etapa-2-funcao.sql` sozinho;
+3. abrir um dia de teste da Várzea Gás;
+4. consultar o estoque antes;
+5. registrar uma entrada de carga;
+6. confirmar cheios aumentados e vazios reduzidos na mesma quantidade;
+7. confirmar total de cascos inalterado;
+8. confirmar bloqueio por vazios insuficientes;
+9. confirmar permissões: authenticated=true, anon=false, public=false;
+10. integrar e testar a tela de entrada de carga na aplicação autenticada.
 
 ## Regra do estoque inicial
 
@@ -88,16 +100,15 @@ O estoque inicial **não será lançado antes de tudo estar concluído**.
 
 O estoque inicial é o marco zero oficial. No momento em que ele for lançado, o controle começa imediatamente e todas as movimentações do mesmo dia deverão ser registradas no Fênix.
 
-Portanto, a sequência oficial será:
+Sequência oficial após homologar a V5.7:
 
-1. concluir e homologar a entrada de carga;
-2. publicar a versão definitiva em HTTPS;
-3. confirmar o acesso do Alex;
-4. definir o momento exato de início;
-5. fazer a contagem física inicial da Várzea Gás;
-6. lançar o estoque inicial;
-7. iniciar o controle oficial no mesmo instante;
-8. manter o controle atual em paralelo por cinco a sete dias;
-9. encerrar cada dia somente com estoque conferido.
+1. publicar a versão definitiva em HTTPS;
+2. confirmar o acesso do Alex;
+3. definir o momento exato de início;
+4. fazer a contagem física inicial da Várzea Gás;
+5. lançar o estoque inicial;
+6. iniciar o controle oficial no mesmo instante;
+7. manter o controle atual em paralelo por cinco a sete dias;
+8. encerrar cada dia somente com estoque conferido.
 
-**Não reconstruir as versões anteriores. Continuar exatamente da V5.6.2 homologada e iniciar pela entrada de carga.**
+**Não reconstruir versões anteriores. Continuar exatamente da V5.6.2 homologada e concluir a homologação da V5.7.**
