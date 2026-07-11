@@ -1,7 +1,7 @@
-# Projeto Fênix Estoque — Implementação V5.7.1
+# Projeto Fênix Estoque — Implementação V5.7.2
 
 **Data:** 11/07/2026  
-**Situação:** código criado e revisado no GitHub; execução e homologação no Supabase ainda pendentes
+**Situação:** função instalada no Supabase; teste principal aprovado; homologação complementar ainda em andamento
 
 ## Operação criada
 
@@ -29,6 +29,20 @@ saida_vazio:   - mesma quantidade de vazios
 
 O total de cascos permanece estável.
 
+## Compatibilidade com o esquema real — V5.7.2
+
+O diagnóstico do Supabase confirmou que:
+
+- `lancamentos.tipo_lancamento` é `text` com restrição `CHECK`;
+- `movimentos_estoque.tipo_movimento` é `text` com restrição `CHECK`.
+
+As restrições foram ampliadas preservando todos os valores anteriores e acrescentando somente:
+
+```text
+entrada_carga
+saida_vazio
+```
+
 ## Proteções implementadas
 
 - exige usuário autenticado;
@@ -45,49 +59,65 @@ O total de cascos permanece estável.
 - libera execução somente para `authenticated`;
 - bloqueia `anon` e `public`.
 
-## Reforço de concorrência V5.7.1
+## Reforço de concorrência
 
 Antes de calcular os vazios disponíveis, a função:
 
 1. bloqueia a linha do dia operacional com `FOR UPDATE`;
 2. bloqueia temporariamente novas inserções em `movimentos_estoque` com `SHARE ROW EXCLUSIVE`;
-3. recalcula o saldo já dentro da transação protegida;
+3. recalcula o saldo dentro da transação protegida;
 4. somente depois grava o lançamento e os dois movimentos.
 
-Essa proteção reduz o risco de duas operações simultâneas utilizarem o mesmo saldo de vazios.
+## Permissões confirmadas
 
-As consultas permanecem disponíveis durante a gravação. O bloqueio dura apenas até o fim da transação da entrada de carga.
+```text
+authenticated_pode_executar = true
+anon_pode_executar = false
+public_pode_executar = false
+```
 
-## Arquivos
+## Teste principal aprovado
 
-1. `sql/v5.7-entrada-carga-etapa-1-tipos.sql`
-2. `sql/v5.7-entrada-carga-etapa-2-funcao.sql`
+Dia exclusivo de homologação:
 
-Os arquivos devem ser executados nessa ordem e separadamente.
+```text
+Revenda: Várzea Gás
+Data: 11/07/2099
+Produto: P13
+Abertura: 100 cheios e 30 vazios
+Entrada registrada: 5 unidades
+```
 
-## Teste de homologação proposto
+Resultado confirmado:
 
-Com um dia de teste aberto na Várzea Gás:
+```text
+cheios_calculados = 105
+vazios_calculados = 25
+total_cascos = 130
+lancamentos_entrada = 1
+movimentos_entrada = 2
+movimentos_vinculados = true
+```
 
-1. consultar o estoque antes;
-2. registrar entrada de 5 unidades de um produto que tenha ao menos 5 vazios;
-3. confirmar a criação de um lançamento;
-4. confirmar dois movimentos vinculados;
-5. consultar o estoque depois;
-6. confirmar `cheios +5`;
-7. confirmar `vazios -5`;
-8. confirmar que o total de cascos não mudou;
-9. tentar quantidade superior aos vazios disponíveis e confirmar bloqueio;
-10. confirmar bloqueio quando o dia não estiver aberto;
-11. confirmar bloqueio quando não houver abertura ativa;
-12. testar permissões e confirmar: `authenticated=true`, `anon=false`, `public=false`.
+Conclusão do teste principal:
+
+```text
+cheios +5
+vazios -5
+total de cascos inalterado
+um lançamento
+dois movimentos vinculados
+```
 
 ## Observação sobre o cálculo já homologado
 
-A função `consultar_estoque_mvp` da V5.4 já trata `entrada_cheia` como aumento de cheios e redução equivalente de vazios. Por compatibilidade, o novo movimento `saida_vazio` funciona como evidência operacional vinculada e não deve ser descontado novamente no cálculo, evitando redução em duplicidade.
+A função `consultar_estoque_mvp` da V5.4 já trata `entrada_cheia` como aumento de cheios e redução equivalente de vazios. O movimento `saida_vazio` funciona como evidência operacional vinculada e não deve ser descontado novamente no cálculo, evitando redução em duplicidade.
 
-## Próxima ação
+## Testes ainda pendentes
 
-Executar os dois SQLs no Supabase, testar com dados de homologação e somente então integrar o botão de entrada de carga à tela autenticada V5.6.2.
+1. confirmar bloqueio por vazios insuficientes sem gravação parcial;
+2. confirmar reflexo correto no fechamento;
+3. integrar e testar a tela de entrada de carga na aplicação autenticada;
+4. remover os dados exclusivos de homologação após a conclusão.
 
-**Não lançar o estoque inicial antes da homologação da V5.7.1 e da publicação definitiva.**
+**Não lançar o estoque inicial antes da homologação completa da V5.7.2 e da publicação definitiva.**
