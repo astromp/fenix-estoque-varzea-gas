@@ -1,7 +1,7 @@
 # Projeto Fênix Estoque — Homologação da interface V5.7.2.1
 
 **Data:** 11/07/2026  
-**Status:** homologação funcional concluída
+**Status:** homologação funcional concluída e dados fictícios removidos
 
 ## Ambiente de teste
 
@@ -83,6 +83,28 @@ anon = false
 public = false
 ```
 
+## Limpeza dos dados fictícios concluída
+
+Após autorização expressa de Marco, os dias fictícios da Várzea Gás foram removidos:
+
+```text
+11/07/2099
+12/07/2099
+```
+
+Resultado final apresentado pelo Supabase:
+
+```text
+resultado = LIMPEZA CONCLUÍDA
+dias_ficticios_restantes = 0
+```
+
+Evidência detalhada:
+
+```text
+docs/limpeza-dados-homologacao-v5.7.2.1-11072026.md
+```
+
 ## Conclusão final
 
 A interface V5.7.2.1 está funcionalmente homologada para a entrada de carga da Várzea Gás:
@@ -93,14 +115,15 @@ A interface V5.7.2.1 está funcionalmente homologada para a entrada de carga da 
 4. preserva o total de cascos;
 5. bloqueia saldo insuficiente sem gravação parcial;
 6. exibe mensagens claras ao operador;
-7. mantém o estoque calculado correto após sucesso e após bloqueio.
+7. mantém o estoque calculado correto após sucesso e após bloqueio;
+8. teve todos os dados fictícios removidos após a homologação.
 
 ## Próximos passos
 
-1. diagnosticar e remover somente os registros fictícios de `11/07/2099` e `12/07/2099`;
-2. promover ou integrar a interface homologada à aplicação definitiva;
-3. publicar a versão definitiva em HTTPS;
-4. confirmar o acesso do Alex no endereço definitivo;
+1. promover ou integrar a interface homologada à aplicação definitiva;
+2. publicar a versão definitiva em HTTPS;
+3. confirmar o acesso do Alex no endereço definitivo;
+4. registrar a homologação publicada;
 5. definir o momento do estoque inicial oficial.
 
 **O estoque inicial oficial continua bloqueado até a publicação definitiva e a definição do início do piloto.**
