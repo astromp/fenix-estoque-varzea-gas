@@ -1,50 +1,69 @@
--- Projeto Fênix Estoque — V5.7
--- ETAPA 1 DE 2: preparar os tipos usados pela entrada de carga.
--- Execute este arquivo sozinho no SQL Editor do Supabase e aguarde a conclusão.
+-- Projeto Fênix Estoque — V5.7.2
+-- ETAPA 1 DE 2: liberar os valores usados pela entrada de carga.
+--
+-- Diagnóstico confirmado em 11/07/2026:
+-- - lancamentos.tipo_lancamento é text com CHECK;
+-- - movimentos_estoque.tipo_movimento é text com CHECK.
+--
+-- Esta versão preserva todos os valores já aceitos e acrescenta somente:
+-- - entrada_carga em lancamentos.tipo_lancamento;
+-- - saida_vazio em movimentos_estoque.tipo_movimento.
+--
+-- Execute este arquivo sozinho no SQL Editor do Supabase.
 -- Depois execute v5.7-entrada-carga-etapa-2-funcao.sql.
 
-DO $bloco$
-DECLARE
-  v_tipo_lancamento regtype;
-  v_tipo_movimento regtype;
-BEGIN
-  SELECT a.atttypid::regtype
-    INTO v_tipo_lancamento
-  FROM pg_attribute a
-  WHERE a.attrelid = 'public.lancamentos'::regclass
-    AND a.attname = 'tipo_lancamento'
-    AND a.attnum > 0
-    AND NOT a.attisdropped;
+BEGIN;
 
-  SELECT a.atttypid::regtype
-    INTO v_tipo_movimento
-  FROM pg_attribute a
-  WHERE a.attrelid = 'public.movimentos_estoque'::regclass
-    AND a.attname = 'tipo_movimento'
-    AND a.attnum > 0
-    AND NOT a.attisdropped;
+ALTER TABLE public.lancamentos
+  DROP CONSTRAINT IF EXISTS lancamentos_tipo_lancamento_check;
 
-  IF EXISTS (SELECT 1 FROM pg_type WHERE oid = v_tipo_lancamento AND typtype = 'e') THEN
-    EXECUTE format('ALTER TYPE %s ADD VALUE IF NOT EXISTS %L', v_tipo_lancamento, 'entrada_carga');
-  END IF;
+ALTER TABLE public.lancamentos
+  ADD CONSTRAINT lancamentos_tipo_lancamento_check
+  CHECK (
+    tipo_lancamento = ANY (
+      ARRAY[
+        'entrada'::text,
+        'venda'::text,
+        'ajuste'::text,
+        'correcao'::text,
+        'entrada_carga'::text
+      ]
+    )
+  );
 
-  IF EXISTS (SELECT 1 FROM pg_type WHERE oid = v_tipo_movimento AND typtype = 'e') THEN
-    EXECUTE format('ALTER TYPE %s ADD VALUE IF NOT EXISTS %L', v_tipo_movimento, 'saida_vazio');
-  END IF;
-END
-$bloco$;
+ALTER TABLE public.movimentos_estoque
+  DROP CONSTRAINT IF EXISTS movimentos_estoque_tipo_movimento_check;
 
--- Conferência: deve retornar os valores entrada_carga e saida_vazio quando as colunas forem enum.
+ALTER TABLE public.movimentos_estoque
+  ADD CONSTRAINT movimentos_estoque_tipo_movimento_check
+  CHECK (
+    tipo_movimento = ANY (
+      ARRAY[
+        'entrada_cheia'::text,
+        'venda_liquido'::text,
+        'venda_casco'::text,
+        'ajuste_entrada'::text,
+        'ajuste_saida'::text,
+        'correcao'::text,
+        'saida_vazio'::text
+      ]
+    )
+  );
+
+COMMIT;
+
+-- Conferência: deve retornar as duas restrições já contendo os novos valores.
 SELECT
-  c.relname AS tabela,
-  a.attname AS coluna,
-  t.typname AS tipo,
-  e.enumlabel AS valor
-FROM pg_attribute a
-JOIN pg_class c ON c.oid = a.attrelid
-JOIN pg_type t ON t.oid = a.atttypid
-LEFT JOIN pg_enum e ON e.enumtypid = t.oid
-WHERE c.oid IN ('public.lancamentos'::regclass, 'public.movimentos_estoque'::regclass)
-  AND a.attname IN ('tipo_lancamento', 'tipo_movimento')
-  AND e.enumlabel IN ('entrada_carga', 'saida_vazio')
-ORDER BY tabela, coluna, e.enumsortorder;
+  c.conrelid::regclass AS tabela,
+  c.conname AS restricao,
+  pg_get_constraintdef(c.oid, true) AS definicao
+FROM pg_constraint c
+WHERE c.conrelid IN (
+  'public.lancamentos'::regclass,
+  'public.movimentos_estoque'::regclass
+)
+  AND c.conname IN (
+    'lancamentos_tipo_lancamento_check',
+    'movimentos_estoque_tipo_movimento_check'
+  )
+ORDER BY c.conrelid::regclass::text, c.conname;
