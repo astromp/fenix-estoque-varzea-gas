@@ -3,6 +3,7 @@
 **Versão publicada atual:** V5.6.2  
 **Backend homologado no Supabase:** V5.7.2 — entrada de carga  
 **Interface homologada funcionalmente:** V5.7.2.1  
+**Pacote definitivo integrado:** preparado em `publicacao-v5.7.2.1/`  
 **Dados fictícios:** removidos com sucesso  
 **Data:** 11/07/2026
 
@@ -17,6 +18,8 @@
 - Correção visual de operação recusada homologada.
 - Dias fictícios `11/07/2099` e `12/07/2099` removidos.
 - Resultado da limpeza: `LIMPEZA CONCLUÍDA`, `dias_ficticios_restantes = 0`.
+- Interface definitiva integrada e arquivada em `publicacao-v5.7.2.1/`.
+- Pacote ZIP de publicação montado e validado fora do GitHub com a conexão pública necessária.
 - A versão definitiva em HTTPS ainda não foi publicada.
 - O estoque inicial oficial ainda não foi lançado.
 
@@ -111,23 +114,54 @@ Várzea Gás
 12/07/2099
 ```
 
-Contagens previamente auditadas:
-
-```text
-2 dias operacionais
-2 conferências de abertura
-10 itens de abertura
-2 lançamentos
-4 movimentos de estoque
-1 fechamento
-5 itens de fechamento
-```
-
 Resultado final:
 
 ```text
 LIMPEZA CONCLUÍDA
 dias_ficticios_restantes = 0
+```
+
+## Pacote definitivo integrado
+
+Pasta no GitHub:
+
+```text
+publicacao-v5.7.2.1/
+```
+
+A interface reúne:
+
+1. login e troca obrigatória de senha;
+2. revenda e canais obtidos do usuário autenticado;
+3. abertura da manhã;
+4. entrada de carga;
+5. venda com troca ou com casco;
+6. estoque calculado;
+7. fechamento físico sem mostrar o calculado antes da confirmação;
+8. correção de divergência;
+9. vendas do dia;
+10. histórico da tela.
+
+A fonte de `app.js` está arquivada em cinco partes dentro de `publicacao-v5.7.2.1/fonte/`. O comando abaixo reconstrói o arquivo final:
+
+```bash
+python publicacao-v5.7.2.1/montar-app.py
+```
+
+## Trava do início oficial
+
+O pacote de publicação foi preparado com:
+
+```js
+OPERACAO_LIBERADA: false
+```
+
+Assim, o acesso do Alex pode ser testado no endereço definitivo sem permitir abertura, entrada, venda, fechamento ou correção.
+
+Somente após autorização expressa do Marco e definição do momento da contagem física inicial, alterar para:
+
+```js
+OPERACAO_LIBERADA: true
 ```
 
 ## Ponto exato para continuar
@@ -136,23 +170,27 @@ Não reconstruir o banco e não repetir os testes já aprovados.
 
 Próxima sequência:
 
-1. promover ou integrar a interface V5.7.2.1 à aplicação definitiva;
-2. publicar a versão definitiva em HTTPS;
-3. confirmar login e operação do Alex no endereço definitivo;
-4. registrar a homologação publicada;
-5. definir o momento exato do estoque inicial oficial.
+1. definir o endereço ou subdomínio HTTPS da aplicação;
+2. publicar o ZIP definitivo mantendo `OPERACAO_LIBERADA: false`;
+3. confirmar o login do Alex no endereço definitivo;
+4. confirmar `Alex · operador/conferente` e somente `Várzea Gás`;
+5. testar em celular e computador;
+6. registrar a homologação publicada;
+7. definir o momento exato do estoque inicial oficial;
+8. somente então liberar a operação e fazer a contagem física inicial.
 
 ## Regra do estoque inicial
 
-O estoque inicial é o marco zero do controle. Não lançar antes da publicação definitiva e da definição do início do piloto.
+O estoque inicial é o marco zero do controle. Não lançar antes da publicação definitiva, da validação do acesso e da autorização do início do piloto.
 
 Quando for autorizado:
 
 1. fazer a contagem física inicial da Várzea Gás;
-2. lançar o estoque inicial;
-3. iniciar o controle oficial imediatamente;
-4. registrar todas as movimentações do mesmo dia;
-5. manter o controle atual em paralelo por cinco a sete dias;
-6. encerrar cada dia somente com estoque conferido.
+2. liberar a operação no `config.js`;
+3. lançar o estoque inicial;
+4. iniciar o controle oficial imediatamente;
+5. registrar todas as movimentações do mesmo dia;
+6. manter o controle atual em paralelo por cinco a sete dias;
+7. encerrar cada dia somente com estoque conferido.
 
-**Próximo trabalho: publicar a interface V5.7.2.1 em HTTPS e validar o acesso do Alex.**
+**Próximo trabalho: publicar a interface V5.7.2.1 em HTTPS com a operação ainda bloqueada e validar o acesso do Alex.**
