@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#06285f" />
+  <title>Projeto Fênix Estoque — Várzea Gás</title>
+  <link rel="stylesheet" href="./style.css?v=5.7.2.1" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Projeto Fênix Estoque</p>
+        <h1>Operação Celular</h1>
+        <p class="version">V5.7.2.1</p>
+      </div>
+      <span id="connectionBadge" class="badge badge-warn">Desconectado</span>
+    </header>
+
+    <main>
+      <section id="screen-config" class="auth-screen hidden">
+        <div class="card auth-card">
+          <p class="eyebrow blue">Configuração</p>
+          <h2>Conexão pendente</h2>
+          <p class="muted">O arquivo <strong>config.js</strong> precisa conter a URL e a chave pública do Supabase.</p>
+        </div>
+      </section>
+
+      <section id="screen-login" class="auth-screen hidden">
+        <form id="loginForm" class="card auth-card" autocomplete="on">
+          <p class="eyebrow blue">Acesso protegido</p>
+          <h2>Entrar no Fênix</h2>
+          <label for="loginEmail">E-mail</label>
+          <input id="loginEmail" type="email" autocomplete="username" required />
+          <label for="loginPassword">Senha</label>
+          <div class="password-row">
+            <input id="loginPassword" type="password" autocomplete="current-password" required />
+            <button id="toggleLoginPassword" type="button" class="small-button" aria-pressed="false">Mostrar</button>
+          </div>
+          <button id="loginButton" type="submit" class="primary-button">Entrar</button>
+          <p id="loginMessage" class="form-message muted">Use seu usuário autorizado.</p>
+        </form>
+      </section>
+
+      <section id="screen-password" class="auth-screen hidden">
+        <form id="passwordForm" class="card auth-card" autocomplete="off">
+          <p class="eyebrow blue">Primeiro acesso</p>
+          <h2>Crie sua nova senha</h2>
+          <label for="newPassword">Nova senha</label>
+          <div class="password-row">
+            <input id="newPassword" type="password" minlength="8" autocomplete="new-password" required />
+            <button id="toggleNewPassword" type="button" class="small-button" aria-pressed="false">Mostrar</button>
+          </div>
+          <label for="confirmPassword">Confirmar senha</label>
+          <input id="confirmPassword" type="password" minlength="8" autocomplete="new-password" required />
+          <button id="savePasswordButton" type="submit" class="primary-button">Salvar nova senha</button>
+          <p id="passwordMessage" class="form-message muted">Use pelo menos 8 caracteres.</p>
+        </form>
+      </section>
+
+      <section id="screen-app" class="hidden">
+        <div class="session-card">
+          <div>
+            <strong id="userLabel">Usuário</strong>
+            <span id="revendaLabel">Revenda</span>
+          </div>
+          <button id="logoutButton" type="button" class="logout-button">Sair</button>
+        </div>
+
+        <section id="view-dashboard" class="view active">
+          <div class="card hero">
+            <p class="eyebrow blue">Operação diária</p>
+            <h2 id="dateTitle">Operação diária</h2>
+            <label for="operationDate">Data operacional</label>
+            <input id="operationDate" type="date" />
+            <p id="dashboardMessage" class="muted">Atualize o status do dia.</p>
+          </div>
+
+          <div id="pilotLockNotice" class="card lock-card hidden">
+            <h3>Piloto aguardando liberação</h3>
+            <p>O acesso pode ser testado, mas nenhuma movimentação oficial será gravada antes da autorização do início do estoque.</p>
+          </div>
+
+          <div class="card">
+            <h3>Status do dia</h3>
+            <div id="statusPanel" class="status-panel">
+              <div class="status-line"><strong>Status</strong><span class="warn">não consultado</span></div>
+            </div>
+            <button id="refreshStatusButton" type="button" class="ghost-button">Atualizar status</button>
+          </div>
+
+          <div class="grid-actions">
+            <button id="openOpeningButton" type="button" class="action-card" data-view="opening"><strong>Abertura da manhã</strong><span>Informar cheios e vazios iniciais</span></button>
+            <button id="openEntryButton" type="button" class="action-card" data-view="entry"><strong>Entrada de carga</strong><span>Entram cheios e saem vazios</span></button>
+            <button id="openSaleButton" type="button" class="action-card" data-view="sale"><strong>Lançar venda</strong><span>Venda com troca ou com casco</span></button>
+            <button id="openStockButton" type="button" class="action-card" data-view="stock"><strong>Estoque calculado</strong><span>Consultar saldo esperado</span></button>
+            <button id="openClosingButton" type="button" class="action-card" data-view="closing"><strong>Fechamento</strong><span>Conferir físico sem ver o calculado</span></button>
+            <button id="openCorrectionButton" type="button" class="action-card" data-view="correction"><strong>Correção</strong><span>Corrigir venda com casco não lançada</span></button>
+            <button id="openSalesReportButton" type="button" class="action-card" data-view="sales-report"><strong>Vendas do dia</strong><span>Consultar lançamentos registrados</span></button>
+            <button type="button" class="action-card" data-view="log"><strong>Histórico da tela</strong><span>Ver retornos e mensagens</span></button>
+          </div>
+        </section>
+
+        <section id="view-opening" class="view">
+          <div class="screen-title"><button type="button" class="back-button" data-view="dashboard">←</button><div><p class="eyebrow blue">Etapa 1</p><h2>Abertura da manhã</h2></div></div>
+          <div class="card"><p class="tip">Informe a contagem física inicial dos cinco produtos. O estoque oficial começa a partir desta abertura.</p><div id="openingList" class="product-list"></div><button id="saveOpeningButton" type="button" class="primary-button">Gravar abertura</button></div>
+        </section>
+
+        <section id="view-entry" class="view">
+          <div class="screen-title"><button type="button" class="back-button" data-view="dashboard">←</button><div><p class="eyebrow blue">Movimentação</p><h2>Entrada de carga</h2></div></div>
+          <div class="card"><label for="entryProduct">Produto</label><select id="entryProduct"></select><label for="entryQty">Quantidade recebida</label><input id="entryQty" type="number" min="1" step="1" inputmode="numeric" placeholder="Ex.: 10" /><div class="preview-box"><div><span>Cheios entram</span><strong id="previewFull">0</strong></div><div><span>Vazios saem</span><strong id="previewEmpty">0</strong></div></div><button id="saveEntryButton" type="button" class="primary-button">Registrar entrada</button></div>
+          <div id="entryResultCard" class="card hidden"><h3 id="entryResultTitle">Entrada registrada</h3><div id="entryResult" class="table-like"></div></div>
+        </section>
+
+        <section id="view-sale" class="view">
+          <div class="screen-title"><button type="button" class="back-button" data-view="dashboard">←</button><div><p class="eyebrow blue">Movimentação</p><h2>Lançar venda</h2></div></div>
+          <div class="card"><label for="saleChannel">Canal de venda</label><select id="saleChannel"></select><label for="saleProduct">Produto</label><select id="saleProduct"></select><label for="saleQty">Quantidade vendida</label><input id="saleQty" type="number" min="1" step="1" inputmode="numeric" placeholder="Ex.: 10" /><div class="switch-row"><div><strong>Venda com casco?</strong><p class="muted">Informe apenas os cascos vendidos sem retorno de vazio.</p></div><button id="toggleCascoButton" type="button" class="toggle-button" aria-pressed="false">Não</button></div><div id="cascoField" class="hidden"><label for="cascoQty">Quantidade de cascos vendidos</label><input id="cascoQty" type="number" min="1" step="1" inputmode="numeric" placeholder="Ex.: 1" /></div><button id="saveSaleButton" type="button" class="primary-button">Registrar venda</button></div>
+          <div id="saleResultCard" class="card hidden"><h3 id="saleResultTitle">Venda registrada</h3><div id="saleResult" class="table-like"></div></div>
+        </section>
+
+        <section id="view-stock" class="view">
+          <div class="screen-title"><button type="button" class="back-button" data-view="dashboard">←</button><div><p class="eyebrow blue">Acompanhamento</p><h2>Estoque calculado</h2></div></div>
+          <div class="card"><button id="queryStockButton" type="button" class="primary-button">Consultar estoque</button></div><div class="card"><h3>Resultado</h3><div id="stockList"><p class="muted">Clique em consultar.</p></div></div>
+        </section>
+
+        <section id="view-closing" class="view">
+          <div class="screen-title"><button type="button" class="back-button" data-view="dashboard">←</button><div><p class="eyebrow blue">Etapa final</p><h2>Fechamento físico</h2></div></div>
+          <div class="card"><p class="tip">Conte fisicamente cheios e vazios. O sistema só mostrará o calculado depois que você confirmar a contagem.</p><div id="closingList" class="product-list"></div><button id="saveClosingButton" type="button" class="primary-button">Conferir e fechar</button></div><div id="closingResultCard" class="card hidden"><h3>Resultado do fechamento</h3><div id="closingItems"></div></div>
+        </section>
+
+        <section id="view-correction" class="view">
+          <div class="screen-title"><button type="button" class="back-button" data-view="dashboard">←</button><div><p class="eyebrow blue">Revisão</p><h2>Corrigir divergência</h2></div></div>
+          <div class="card"><p class="tip">Use quando uma venda com casco não foi lançada. O histórico é preservado.</p><label for="correctionChannel">Canal</label><select id="correctionChannel"></select><label for="correctionProduct">Produto</label><select id="correctionProduct"></select><label for="correctionQty">Quantidade</label><input id="correctionQty" type="number" min="1" step="1" inputmode="numeric" placeholder="Ex.: 1" /><button id="runCorrectionButton" type="button" class="primary-button">Registrar correção</button></div><div id="correctionResultCard" class="card hidden"><h3>Resultado da correção</h3><div id="correctionResult" class="table-like"></div></div>
+        </section>
+
+        <section id="view-sales-report" class="view">
+          <div class="screen-title"><button type="button" class="back-button" data-view="dashboard">←</button><div><p class="eyebrow blue">Consulta</p><h2>Vendas do dia</h2></div></div>
+          <div class="card"><button id="querySalesButton" type="button" class="primary-button">Consultar vendas</button></div><div class="card"><h3>Lançamentos</h3><div id="salesList"><p class="muted">Clique em consultar.</p></div></div>
+        </section>
+
+        <section id="view-log" class="view">
+          <div class="screen-title"><button type="button" class="back-button" data-view="dashboard">←</button><div><p class="eyebrow blue">Retornos</p><h2>Histórico da tela</h2></div></div>
+          <div class="card"><button id="clearLogButton" type="button" class="danger-button">Limpar histórico</button><div id="logBox" class="result-box">Aguardando operação.</div></div>
+        </section>
+      </section>
+    </main>
+
+    <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./config.js?v=5.7.2.1"></script>
+  <script src="./app.js?v=5.7.2.1"></script>
+</body>
+</html>
