@@ -1,136 +1,106 @@
-# Projeto Fênix Estoque — Validação visual da interface V5.7.2
+# Projeto Fênix Estoque — Homologação da interface V5.7.2.1
 
 **Data:** 11/07/2026  
-**Situação:** fluxo principal aprovado; bloqueio amigável aprovado; correção visual V5.7.2.1 aprovada
+**Status:** homologação funcional concluída
 
-## Ambiente de homologação
+## Ambiente de teste
 
 ```text
 Revenda: Várzea Gás
+Usuário autenticado: Alex
 Data operacional: 12/07/2099
-Status do dia: aberto
 Produto: P13
-Entrada lançada: 5 unidades
+Abertura: 100 cheios / 30 vazios / total 130
 ```
 
-## Evidência do fluxo principal
+## Fluxo principal aprovado
 
-Após registrar a entrada pela tela e consultar o estoque calculado, a interface mostrou:
+A interface registrou uma entrada de 5 P13 pela função protegida:
 
 ```text
-P13
-cheios = 105
-vazios = 25
-total = 130
+registrar_entrada_carga_mvp(uuid,date,text,integer)
 ```
 
-Os demais produtos permaneceram inalterados:
+Resultado apresentado no estoque calculado:
 
 ```text
+P13 = 105 cheios / 25 vazios / total 130
 P05 = 10 cheios / 5 vazios / total 15
 P20 = 10 cheios / 2 vazios / total 12
 P45 = 10 cheios / 10 vazios / total 20
 AGUA = 50 cheios / 10 vazios / total 60
 ```
 
-## Regra comprovada pela interface
-
-Partindo de:
-
-```text
-100 cheios
-30 vazios
-130 cascos
-```
-
-A entrada de 5 unidades produziu:
+Conclusão:
 
 ```text
 cheios +5
 vazios -5
-total de cascos inalterado
+total de cascos preservado
+produtos não envolvidos permaneceram inalterados
 ```
 
-Resultado:
+## Bloqueio por vazios insuficientes aprovado
 
-```text
-105 cheios
-25 vazios
-130 cascos
-```
+Com 25 vazios disponíveis, foi tentada uma entrada de 26 P13.
 
-## Bloqueio amigável aprovado
-
-Com 25 vazios disponíveis para P13, a interface recebeu tentativa de entrada de 26 unidades.
-
-Mensagem apresentada:
-
-```text
-Não há vazios suficientes para esta entrada.
-Disponível: 25, solicitado: 26.
-```
-
-Portanto, a tela traduziu corretamente o erro técnico da função para linguagem operacional.
-
-## Correção visual V5.7.2.1 aprovada
-
-Na primeira tentativa bloqueada, o cartão de sucesso da entrada anterior permaneceu visível atrás do aviso vermelho. Embora a operação tivesse sido recusada, isso poderia confundir o operador.
-
-A correção visual V5.7.2.1 foi aplicada e testada. Na nova tentativa de 26 P13, a tela mostrou somente:
+A interface mostrou:
 
 ```text
 Entrada não registrada
-Resultado: Operação bloqueada
-Motivo: Não há vazios suficientes para esta entrada. Disponível: 25, solicitado: 26.
-Estoque: Sem alteração
+Operação bloqueada
+Não há vazios suficientes para esta entrada.
+Disponível: 25, solicitado: 26.
+Estoque sem alteração
 ```
 
-A correção aprovada:
-
-```text
-- limpa o resultado anterior ao iniciar nova tentativa;
-- mostra “Entrada não registrada” quando houver bloqueio;
-- mostra “Operação bloqueada”;
-- informa o motivo;
-- informa “Estoque sem alteração”.
-```
-
-Commits principais:
-
-```text
-84bad1f99b88e3e46d86798b46363ef49f234af5
-5fad6a7419815d3e14ab352997411d1fbf94e35e
-c4791b6dd9dbb1e317a36833be9c0aa545345681
-```
-
-## Conclusão atual
-
-A interface autenticada conseguiu:
-
-1. reconhecer a Várzea Gás do usuário autenticado;
-2. consultar um dia aberto;
-3. liberar a operação de entrada de carga;
-4. registrar a entrada pela RPC homologada;
-5. refletir corretamente o movimento no estoque calculado;
-6. preservar o total de cascos;
-7. bloquear quantidade superior aos vazios disponíveis;
-8. apresentar mensagem amigável;
-9. limpar o resultado anterior;
-10. deixar explícito que a operação não foi registrada e que o estoque não foi alterado.
-
-## Última conferência antes da homologação final
-
-Consultar novamente o estoque na própria interface e confirmar:
+Após o bloqueio, a consulta final confirmou:
 
 ```text
 P13 = 105 cheios / 25 vazios / total 130
 ```
 
-Depois dessa conferência:
+Portanto, nenhuma gravação adicional ocorreu.
 
-1. remover os registros exclusivos de homologação de `11/07/2099` e `12/07/2099`;
-2. promover ou integrar a interface aprovada à aplicação definitiva;
+## Correção visual V5.7.2.1 aprovada
+
+A tela foi ajustada para:
+
+- limpar o resultado anterior antes de cada nova tentativa;
+- não manter um cartão de sucesso visível quando a operação for recusada;
+- mostrar `Entrada não registrada`;
+- mostrar `Operação bloqueada`;
+- apresentar o motivo em linguagem operacional;
+- informar `Estoque sem alteração`.
+
+## Segurança confirmada
+
+A revenda é obtida da sessão autenticada, sem seletor livre para o operador. A função permanece com as permissões:
+
+```text
+authenticated = true
+anon = false
+public = false
+```
+
+## Conclusão final
+
+A interface V5.7.2.1 está funcionalmente homologada para a entrada de carga da Várzea Gás:
+
+1. reconhece o usuário autenticado e sua revenda;
+2. libera entrada somente com o dia aberto;
+3. registra entrada de cheio e saída equivalente de vazio;
+4. preserva o total de cascos;
+5. bloqueia saldo insuficiente sem gravação parcial;
+6. exibe mensagens claras ao operador;
+7. mantém o estoque calculado correto após sucesso e após bloqueio.
+
+## Próximos passos
+
+1. diagnosticar e remover somente os registros fictícios de `11/07/2099` e `12/07/2099`;
+2. promover ou integrar a interface homologada à aplicação definitiva;
 3. publicar a versão definitiva em HTTPS;
-4. registrar a homologação final da V5.7.2 completa.
+4. confirmar o acesso do Alex no endereço definitivo;
+5. definir o momento do estoque inicial oficial.
 
-**O estoque inicial oficial continua bloqueado até a publicação definitiva.**
+**O estoque inicial oficial continua bloqueado até a publicação definitiva e a definição do início do piloto.**
