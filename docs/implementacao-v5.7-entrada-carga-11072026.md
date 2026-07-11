@@ -1,7 +1,7 @@
 # Projeto Fênix Estoque — Implementação V5.7.2
 
 **Data:** 11/07/2026  
-**Situação:** função instalada no Supabase; teste principal aprovado; homologação complementar ainda em andamento
+**Situação:** função instalada no Supabase; teste principal e bloqueio por vazios insuficientes aprovados; homologação complementar ainda em andamento
 
 ## Operação criada
 
@@ -109,15 +109,38 @@ um lançamento
 dois movimentos vinculados
 ```
 
+## Bloqueio por vazios insuficientes aprovado
+
+Com 25 vazios disponíveis, foi tentada uma entrada de 26 unidades de P13.
+
+Resultado:
+
+```text
+resultado = BLOQUEIO APROVADO
+erro_recebido = Vazios insuficientes. Disponível: 25, solicitado: 26.
+lancamentos_antes = 1
+lancamentos_depois = 1
+movimentos_antes = 2
+movimentos_depois = 2
+```
+
+Conclusão:
+
+- a operação incorreta foi recusada;
+- nenhum lançamento adicional foi criado;
+- nenhum movimento adicional foi criado;
+- não houve gravação parcial.
+
 ## Observação sobre o cálculo já homologado
 
 A função `consultar_estoque_mvp` da V5.4 já trata `entrada_cheia` como aumento de cheios e redução equivalente de vazios. O movimento `saida_vazio` funciona como evidência operacional vinculada e não deve ser descontado novamente no cálculo, evitando redução em duplicidade.
 
 ## Testes ainda pendentes
 
-1. confirmar bloqueio por vazios insuficientes sem gravação parcial;
-2. confirmar reflexo correto no fechamento;
-3. integrar e testar a tela de entrada de carga na aplicação autenticada;
-4. remover os dados exclusivos de homologação após a conclusão.
+1. confirmar reflexo correto no fechamento;
+2. integrar e testar a tela de entrada de carga na aplicação autenticada;
+3. testar a tela com o usuário Alex;
+4. remover os dados exclusivos de homologação após a conclusão;
+5. registrar a homologação final.
 
 **Não lançar o estoque inicial antes da homologação completa da V5.7.2 e da publicação definitiva.**
