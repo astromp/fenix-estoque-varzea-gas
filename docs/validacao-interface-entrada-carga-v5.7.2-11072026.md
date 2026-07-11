@@ -1,7 +1,7 @@
 # Projeto Fênix Estoque — Validação visual da interface V5.7.2
 
 **Data:** 11/07/2026  
-**Situação:** fluxo principal aprovado; bloqueio amigável aprovado; correção visual V5.7.2.1 criada
+**Situação:** fluxo principal aprovado; bloqueio amigável aprovado; correção visual V5.7.2.1 aprovada
 
 ## Ambiente de homologação
 
@@ -72,11 +72,20 @@ Disponível: 25, solicitado: 26.
 
 Portanto, a tela traduziu corretamente o erro técnico da função para linguagem operacional.
 
-## Ajuste visual identificado
+## Correção visual V5.7.2.1 aprovada
 
-Na tentativa bloqueada, o cartão de sucesso da entrada anterior permaneceu visível atrás do aviso vermelho. Embora a operação tenha sido recusada, isso poderia confundir o operador.
+Na primeira tentativa bloqueada, o cartão de sucesso da entrada anterior permaneceu visível atrás do aviso vermelho. Embora a operação tivesse sido recusada, isso poderia confundir o operador.
 
-Foi criada a correção visual V5.7.2.1:
+A correção visual V5.7.2.1 foi aplicada e testada. Na nova tentativa de 26 P13, a tela mostrou somente:
+
+```text
+Entrada não registrada
+Resultado: Operação bloqueada
+Motivo: Não há vazios suficientes para esta entrada. Disponível: 25, solicitado: 26.
+Estoque: Sem alteração
+```
+
+A correção aprovada:
 
 ```text
 - limpa o resultado anterior ao iniciar nova tentativa;
@@ -105,16 +114,23 @@ A interface autenticada conseguiu:
 5. refletir corretamente o movimento no estoque calculado;
 6. preservar o total de cascos;
 7. bloquear quantidade superior aos vazios disponíveis;
-8. apresentar mensagem amigável.
+8. apresentar mensagem amigável;
+9. limpar o resultado anterior;
+10. deixar explícito que a operação não foi registrada e que o estoque não foi alterado.
 
 ## Última conferência antes da homologação final
 
-Após aplicar a V5.7.2.1, repetir a tentativa de 26 P13 e confirmar que a tela mostra somente o cartão de bloqueio. Em seguida, consultar o estoque e confirmar:
+Consultar novamente o estoque na própria interface e confirmar:
 
 ```text
 P13 = 105 cheios / 25 vazios / total 130
 ```
 
-Depois dessa conferência, remover os registros exclusivos de homologação, promover/publicar a interface definitiva em HTTPS e registrar a homologação final.
+Depois dessa conferência:
+
+1. remover os registros exclusivos de homologação de `11/07/2099` e `12/07/2099`;
+2. promover ou integrar a interface aprovada à aplicação definitiva;
+3. publicar a versão definitiva em HTTPS;
+4. registrar a homologação final da V5.7.2 completa.
 
 **O estoque inicial oficial continua bloqueado até a publicação definitiva.**
