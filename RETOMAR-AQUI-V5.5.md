@@ -2,7 +2,7 @@
 
 **Versão homologada em produção:** V5.6.2  
 **Backend homologado no Supabase:** V5.7.2 — entrada de carga  
-**Interface V5.7.2 criada:** pasta separada de homologação; teste real pendente  
+**Interface V5.7.2:** fluxo principal aprovado; bloqueio visual e publicação definitiva pendentes  
 **Data:** 11/07/2026
 
 ## Estado homologado
@@ -30,8 +30,6 @@
 Não registrar senha no GitHub ou em documentos do projeto.
 
 ## Segurança homologada
-
-Para as funções operacionais protegidas:
 
 ```text
 authenticated_pode_executar = true
@@ -79,7 +77,7 @@ entrada_carga
 saida_vazio
 ```
 
-## Homologação aprovada no Supabase
+## Backend aprovado no Supabase
 
 Dia exclusivo de homologação:
 
@@ -91,7 +89,7 @@ abertura: 100 cheios / 30 vazios / 130 cascos
 entrada: 5 unidades
 ```
 
-Resultado do estoque:
+Resultado:
 
 ```text
 105 cheios
@@ -124,7 +122,7 @@ P45 = 10 cheios / 10 vazios / diferenças 0
 AGUA = 50 cheios / 10 vazios / diferenças 0
 ```
 
-Conclusão:
+Conclusão do backend:
 
 ```text
 backend da entrada de carga homologado
@@ -134,9 +132,9 @@ reflexo correto no fechamento confirmado
 estoque fechado, turno encerrado
 ```
 
-## Interface de homologação criada
+## Interface de homologação
 
-Como o código-fonte da tela autenticada V5.6.2 não foi localizado no repositório nem no Drive, foi criada uma pasta nova e isolada, sem substituir a versão publicada:
+Pasta isolada, sem substituir a versão publicada:
 
 ```text
 homologacao-v5.7.2/
@@ -168,26 +166,59 @@ A interface inclui:
 12. mensagem amigável para vazios insuficientes;
 13. consulta do estoque calculado.
 
-A interface passou por validação local de sintaxe JavaScript e correspondência entre os elementos usados pelo código e os IDs do HTML. Isso não substitui o teste real com Supabase e com o usuário Alex.
-
 Nenhuma URL, chave ou senha real foi gravada no GitHub. O arquivo `config.js` permanece com placeholders.
+
+## Fluxo principal da interface aprovado
+
+Dia de teste visual:
+
+```text
+Várzea Gás
+12/07/2099
+status: aberto
+produto: P13
+entrada: 5 unidades
+```
+
+A própria tela de estoque calculado mostrou:
+
+```text
+P13 = 105 cheios / 25 vazios / total 130
+P05 = 10 cheios / 5 vazios / total 15
+P20 = 10 cheios / 2 vazios / total 12
+P45 = 10 cheios / 10 vazios / total 20
+AGUA = 50 cheios / 10 vazios / total 60
+```
+
+Conclusão visual:
+
+```text
+entrada pela interface chegou ao Supabase
+cheios +5
+vazios -5
+total de cascos preservado
+produtos não envolvidos permaneceram inalterados
+```
+
+Evidência registrada em:
+
+```text
+docs/validacao-interface-entrada-carga-v5.7.2-11072026.md
+```
 
 ## Ponto exato para continuar
 
-Não reconstruir o banco nem refazer os testes de backend já aprovados. Continuar daqui:
+Não reconstruir o banco nem refazer os testes já aprovados. Continuar daqui:
 
-1. copiar a URL pública e a chave anon/publishable para o `config.js` somente no ambiente de homologação;
-2. publicar a pasta `homologacao-v5.7.2` em endereço HTTPS separado;
-3. entrar com o usuário Alex;
-4. confirmar que somente a Várzea Gás aparece;
-5. usar um dia de homologação aberto para testar a entrada pela tela;
-6. confirmar cheios + quantidade, vazios - quantidade e total de cascos inalterado;
-7. testar pela tela uma quantidade superior aos vazios e confirmar bloqueio amigável;
-8. confirmar o estoque calculado na própria tela;
-9. remover os registros exclusivos de homologação somente após o teste visual aprovado;
-10. integrar a operação à aplicação definitiva ou promover a pasta aprovada;
-11. publicar a versão definitiva em HTTPS;
-12. registrar a homologação final da V5.7.2 completa.
+1. manter a data operacional de homologação `12/07/2099` aberta;
+2. pela própria interface, tentar registrar `26 P13`, quando existem `25` vazios;
+3. confirmar mensagem amigável de vazios insuficientes;
+4. consultar novamente o estoque e confirmar que permanece `105 cheios / 25 vazios / total 130`;
+5. registrar a prova visual do bloqueio;
+6. remover os registros exclusivos de homologação de `11/07/2099` e `12/07/2099` somente depois da prova;
+7. promover ou integrar a interface aprovada à aplicação definitiva;
+8. publicar a versão definitiva em HTTPS;
+9. registrar a homologação final da V5.7.2 completa.
 
 ## Regra do estoque inicial
 
@@ -206,4 +237,4 @@ Sequência oficial após homologar a tela da V5.7.2:
 7. manter o controle atual em paralelo por cinco a sete dias;
 8. encerrar cada dia somente com estoque conferido.
 
-**Não reconstruir versões anteriores. O próximo trabalho é publicar e testar a pasta `homologacao-v5.7.2` com o usuário Alex, sem alterar a versão atualmente publicada.**
+**Não reconstruir versões anteriores. O próximo trabalho é exclusivamente o teste visual de vazios insuficientes na interface V5.7.2.**
