@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#06285f" />
+  <title>Projeto Fênix Estoque — Entrada de carga V5.7.2</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Projeto Fênix Estoque</p>
+        <h1>Operação autenticada</h1>
+        <p class="version">V5.7.2 — homologação da entrada de carga</p>
+      </div>
+      <span id="connectionBadge" class="badge badge-warn">Desconectado</span>
+    </header>
+
+    <main>
+      <section id="screen-config" class="screen hidden">
+        <div class="card hero">
+          <p class="eyebrow">Configuração necessária</p>
+          <h2>Conecte o Supabase</h2>
+          <p class="muted">Preencha o arquivo <strong>config.js</strong> somente com a URL pública e a chave anon/publishable do projeto.</p>
+          <div class="alert alert-danger">Nunca use service_role, senha do banco, JWT secret ou connection string no navegador.</div>
+        </div>
+      </section>
+
+      <section id="screen-login" class="screen hidden">
+        <div class="card hero">
+          <p class="eyebrow">Acesso seguro</p>
+          <h2>Entrar no Projeto Fênix</h2>
+          <form id="loginForm" novalidate>
+            <label for="loginEmail">E-mail</label>
+            <input id="loginEmail" type="email" autocomplete="username" value="varzeaglp@gmail.com" required />
+
+            <label for="loginPassword">Senha</label>
+            <div class="password-row">
+              <input id="loginPassword" type="password" autocomplete="current-password" required />
+              <button id="toggleLoginPassword" class="inline-button" type="button" aria-pressed="false">Mostrar</button>
+            </div>
+
+            <button id="loginButton" class="primary-button" type="submit">Entrar</button>
+          </form>
+          <p id="loginMessage" class="form-message muted" aria-live="polite"></p>
+        </div>
+      </section>
+
+      <section id="screen-password" class="screen hidden">
+        <div class="card hero">
+          <p class="eyebrow">Primeiro acesso</p>
+          <h2>Crie uma nova senha</h2>
+          <p class="muted">A troca é obrigatória antes de iniciar a operação.</p>
+          <form id="passwordForm" novalidate>
+            <label for="newPassword">Nova senha</label>
+            <div class="password-row">
+              <input id="newPassword" type="password" minlength="8" autocomplete="new-password" required />
+              <button id="toggleNewPassword" class="inline-button" type="button" aria-pressed="false">Mostrar</button>
+            </div>
+
+            <label for="confirmPassword">Confirmar nova senha</label>
+            <input id="confirmPassword" type="password" minlength="8" autocomplete="new-password" required />
+
+            <button id="savePasswordButton" class="primary-button" type="submit">Salvar nova senha</button>
+          </form>
+          <p id="passwordMessage" class="form-message muted" aria-live="polite"></p>
+        </div>
+      </section>
+
+      <section id="screen-app" class="screen hidden">
+        <div class="session-card">
+          <div>
+            <strong id="userLabel">Usuário</strong>
+            <span id="revendaLabel">Revenda autorizada</span>
+          </div>
+          <button id="logoutButton" class="small-button danger-outline" type="button">Sair</button>
+        </div>
+
+        <section id="view-dashboard" class="view active">
+          <div class="card hero">
+            <p class="eyebrow">Painel do dia</p>
+            <h2 id="dateTitle">Operação diária</h2>
+            <label for="operationDate">Data operacional</label>
+            <input id="operationDate" type="date" />
+            <p id="dashboardMessage" class="muted">Consulte o status do dia.</p>
+          </div>
+
+          <div class="card">
+            <h3>Status do dia</h3>
+            <div id="statusPanel" class="status-panel">
+              <div class="status-line"><strong>Status</strong><span class="warn">não consultado</span></div>
+            </div>
+            <button id="refreshStatusButton" class="ghost-button" type="button">Atualizar status</button>
+          </div>
+
+          <div class="grid-actions">
+            <button id="openEntryButton" class="action-card" type="button" disabled>
+              <strong>Entrada de carga</strong>
+              <span>Entram cheios e saem vazios na mesma quantidade</span>
+            </button>
+            <button id="openStockButton" class="action-card" type="button" disabled>
+              <strong>Estoque calculado</strong>
+              <span>Consultar cheios, vazios e total de cascos</span>
+            </button>
+          </div>
+        </section>
+
+        <section id="view-entry" class="view">
+          <div class="screen-title">
+            <button class="back-button" data-view="dashboard" type="button" aria-label="Voltar">←</button>
+            <div>
+              <p class="eyebrow">Movimentação</p>
+              <h2>Entrada de carga</h2>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="alert alert-info">
+              A quantidade de cheios recebidos será exatamente a mesma quantidade de vazios entregues. O total de cascos permanece igual.
+            </div>
+
+            <label for="entryProduct">Produto</label>
+            <select id="entryProduct">
+              <option value="P13">P13</option>
+              <option value="P05">P05</option>
+              <option value="P20">P20</option>
+              <option value="P45">P45</option>
+              <option value="AGUA">Água / galão</option>
+            </select>
+
+            <label for="entryQty">Quantidade recebida</label>
+            <input id="entryQty" type="number" min="1" step="1" inputmode="numeric" placeholder="Ex.: 20" />
+
+            <div id="entryPreview" class="preview-box">
+              <div><span>Cheios que entram</span><strong id="previewFull">0</strong></div>
+              <div><span>Vazios que saem</span><strong id="previewEmpty">0</strong></div>
+            </div>
+
+            <button id="saveEntryButton" class="primary-button" type="button">Confirmar entrada de carga</button>
+          </div>
+
+          <div id="entryResultCard" class="card hidden" aria-live="polite">
+            <h3>Entrada registrada</h3>
+            <div id="entryResult" class="table-like"></div>
+          </div>
+        </section>
+
+        <section id="view-stock" class="view">
+          <div class="screen-title">
+            <button class="back-button" data-view="dashboard" type="button" aria-label="Voltar">←</button>
+            <div>
+              <p class="eyebrow">Acompanhamento</p>
+              <h2>Estoque calculado</h2>
+            </div>
+          </div>
+
+          <div class="card">
+            <button id="queryStockButton" class="primary-button" type="button">Consultar estoque</button>
+          </div>
+          <div class="card">
+            <div id="stockList"><p class="muted">Clique em consultar estoque.</p></div>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./config.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
