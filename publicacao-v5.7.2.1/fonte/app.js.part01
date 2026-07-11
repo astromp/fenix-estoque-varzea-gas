@@ -1,0 +1,235 @@
+
+  function statusTexto(status) {
+    return ({
+      nao_consultado: "não consultado",
+      sem_abertura: "sem abertura",
+      aberto: "aberto",
+      inconsistente: "inconsistente",
+      fechado: "fechado"
+    })[status] || status;
+  }
+
+  function client() {
+    if (estado.client) return estado.client;
+    if (!window.supabase) throw new Error("Biblioteca do Supabase não carregou.");
+    if (!configPronta()) throw new Error("Configuração do Supabase pendente.");
+    estado.client = window.supabase.createClient(config().SUPABASE_URL, config().SUPABASE_ANON_KEY, {
+      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+    });
+    return estado.client;
+  }
+
+  async function rpc(nome, parametros = {}) {
+    const { data, error } = await client().rpc(nome, parametros);
+    if (error) throw error;
+    log(nome, data);
+    return data;
+  }
+
+  function aplicarBloqueiosStatus() {
+    if (estado.busy) return;
+    const retorno = estado.statusRetorno || {};
+    const liberada = operacaoLiberada();
+    const semAbertura = estado.status === "sem_abertura";
+    const aberto = estado.status === "aberto";
+    const inconsistente = estado.status === "inconsistente";
+    const temDia = !["nao_consultado", "sem_abertura"].includes(estado.status);
+
+    ui.openOpeningButton.disabled = !liberada || !(semAbertura || retorno.pode_abrir === true);
+    ui.openEntryButton.disabled = !liberada || !aberto;
+    ui.openSaleButton.disabled = !liberada || !aberto;
+    ui.openStockButton.disabled = !temDia;
+    ui.openClosingButton.disabled = !liberada || !(aberto || inconsistente || retorno.pode_fechar === true);
+    ui.openCorrectionButton.disabled = !liberada || !(inconsistente || retorno.pode_corrigir === true);
+    ui.openSalesReportButton.disabled = !temDia;
+
+    ui.saveOpeningButton.disabled = !liberada || !semAbertura;
+    ui.saveEntryButton.disabled = !liberada || !aberto;
+    ui.saveSaleButton.disabled = !liberada || !aberto;
+    ui.saveClosingButton.disabled = !liberada || !(aberto || inconsistente);
+    ui.runCorrectionButton.disabled = !liberada || !inconsistente;
+    ui.pilotLockNotice.classList.toggle("hidden", liberada);
+  }
+
+  function renderStatus(retorno = null) {
+    const status = estado.status;
+    ui.dateTitle.textContent = `Operação diária — ${dataOperacional()}`;
+    ui.dashboardMessage.textContent = retorno?.mensagem || ({
+      nao_consultado: "Atualize o status do dia.",
+      sem_abertura: "Dia sem abertura. Faça a contagem inicial antes de lançar movimentos.",
+      aberto: "Dia aberto para operação.",
+      inconsistente: "Estoque inconsistente. Revise e corrija antes de encerrar.",
+      fechado: "Estoque fechado, turno encerrado."
+    })[status] || "Status do dia atualizado.";
+
+    ui.statusPanel.innerHTML = `
+      <div class="status-line"><strong>Status</strong><span class="${statusClasse(status)}">${escapeHtml(statusTexto(status))}</span></div>
+      <div class="status-line"><strong>Revenda</strong><span>${escapeHtml(estado.revenda?.nome || "-")}</span></div>
+      <div class="status-line"><strong>Data</strong><span>${escapeHtml(dataOperacional())}</span></div>
+      <div class="status-line"><strong>Lançamentos</strong><span>${escapeHtml(retorno?.qtd_lancamentos ?? "-")}</span></div>
+      <div class="status-line"><strong>Operação oficial</strong><span class="${operacaoLiberada() ? "ok" : "warn"}">${operacaoLiberada() ? "liberada" : "aguardando autorização"}</span></div>
+    `;
+    aplicarBloqueiosStatus();
+  }
+
+  function preencherProdutosSelect(select) {
+    select.innerHTML = PRODUTOS.map((produto) => `<option value="${produto.codigo}">${escapeHtml(produto.nome)}</option>`).join("");
+  }
+
+  function renderContagem(container, prefixo) {
+    container.innerHTML = PRODUTOS.map((produto) => `
+      <div class="product-row">
+        <div class="product-row-title"><strong>${escapeHtml(produto.nome)}</strong><small>${escapeHtml(produto.codigo)}</small></div>
+        <div class="product-inputs">
+          <div><label for="${prefixo}_${produto.codigo}_cheios">Cheios</label><input id="${prefixo}_${produto.codigo}_cheios" type="number" min="0" step="1" inputmode="numeric" value="0" /></div>
+          <div><label for="${prefixo}_${produto.codigo}_vazios">Vazios</label><input id="${prefixo}_${produto.codigo}_vazios" type="number" min="0" step="1" inputmode="numeric" value="0" /></div>
+        </div>
+      </div>
+    `).join("");
+  }
+
+  function lerContagem(prefixo) {
+    return PRODUTOS.map((produto) => {
+      const cheios = numeroInteiroNaoNegativo($(`#${prefixo}_${produto.codigo}_cheios`)?.value);
+      const vazios = numeroInteiroNaoNegativo($(`#${prefixo}_${produto.codigo}_vazios`)?.value);
+      if (cheios < 0 || vazios < 0) throw new Error(`Informe valores inteiros e não negativos para ${produto.nome}.`);
+      return { codigo: produto.codigo, cheios, vazios };
+    });
+  }
+
+  function limparContagem(prefixo) {
+    PRODUTOS.forEach((produto) => {
+      const cheios = $(`#${prefixo}_${produto.codigo}_cheios`);
+      const vazios = $(`#${prefixo}_${produto.codigo}_vazios`);
+      if (cheios) cheios.value = "0";
+      if (vazios) vazios.value = "0";
+    });
+  }
+
+  async function carregarCanais() {
+    const retorno = await rpc("listar_meus_canais_fenix", { p_revenda_id: estado.revenda.id });
+    estado.canais = Array.isArray(retorno) ? retorno.filter((item) => item.ativo !== false) : [];
+    const opcoes = estado.canais.length
+      ? estado.canais.map((canal) => `<option value="${escapeHtml(canal.nome)}">${escapeHtml(canal.nome)}</option>`).join("")
+      : '<option value="">Nenhum canal disponível</option>';
+    ui.saleChannel.innerHTML = opcoes;
+    ui.correctionChannel.innerHTML = opcoes;
+  }
+
+  async function carregarAcesso() {
+    const acesso = await rpc("consultar_meu_acesso_fenix");
+    if (!acesso?.ok) throw new Error(acesso?.mensagem || "Usuário sem acesso ativo ao Projeto Fênix.");
+    if (!Array.isArray(acesso.revendas) || acesso.revendas.length === 0) throw new Error("Nenhuma revenda autorizada foi encontrada para este usuário.");
+
+    estado.acesso = acesso;
+    estado.revenda = acesso.revendas[0];
+    ui.userLabel.textContent = `${acesso.nome} · ${perfilLegivel(acesso.perfil || estado.revenda.perfil)}`;
+    ui.revendaLabel.textContent = `${estado.revenda.nome}${estado.revenda.cidade ? ` — ${estado.revenda.cidade}` : ""}`;
+
+    if (acesso.trocar_senha_primeiro_acesso) {
+      setBadge("Trocar senha", "warn");
+      showScreen(ui.screenPassword);
+      return;
+    }
+
+    await carregarCanais();
+    setBadge("Conectado", "ok");
+    showScreen(ui.screenApp);
+    showView("dashboard");
+    await consultarStatus();
+  }
+
+  async function restaurarSessao() {
+    if (!configPronta()) {
+      setBadge("Configurar", "warn");
+      showScreen(ui.screenConfig);
+      return;
+    }
+    try {
+      const { data, error } = await client().auth.getSession();
+      if (error) throw error;
+      estado.session = data.session;
+      if (!estado.session) {
+        setBadge("Desconectado", "warn");
+        showScreen(ui.screenLogin);
+        return;
+      }
+      await carregarAcesso();
+    } catch (error) {
+      log("Erro ao restaurar sessão", friendlyError(error));
+      setBadge("Erro de acesso", "danger");
+      showScreen(ui.screenLogin);
+      ui.loginMessage.textContent = friendlyError(error);
+      ui.loginMessage.className = "form-message danger";
+    }
+  }
+
+  async function entrar(event) {
+    event.preventDefault();
+    const email = ui.loginEmail.value.trim();
+    const password = ui.loginPassword.value;
+    if (!email || !password) {
+      ui.loginMessage.textContent = "Informe o e-mail e a senha.";
+      ui.loginMessage.className = "form-message danger";
+      return;
+    }
+    setBusy(true, ui.loginButton);
+    ui.loginMessage.textContent = "Entrando...";
+    ui.loginMessage.className = "form-message muted";
+    try {
+      const { data, error } = await client().auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      estado.session = data.session;
+      ui.loginPassword.value = "";
+      await carregarAcesso();
+    } catch (error) {
+      ui.loginMessage.textContent = friendlyError(error);
+      ui.loginMessage.className = "form-message danger";
+      log("Erro no login", friendlyError(error));
+    } finally {
+      setBusy(false, ui.loginButton);
+    }
+  }
+
+  async function trocarSenha(event) {
+    event.preventDefault();
+    const senha = ui.newPassword.value;
+    const confirmacao = ui.confirmPassword.value;
+    if (senha.length < 8) {
+      ui.passwordMessage.textContent = "A nova senha precisa ter pelo menos 8 caracteres.";
+      ui.passwordMessage.className = "form-message danger";
+      return;
+    }
+    if (senha !== confirmacao) {
+      ui.passwordMessage.textContent = "As duas senhas precisam ser iguais.";
+      ui.passwordMessage.className = "form-message danger";
+      return;
+    }
+    setBusy(true, ui.savePasswordButton);
+    ui.passwordMessage.textContent = "Salvando nova senha...";
+    ui.passwordMessage.className = "form-message muted";
+    try {
+      const { error } = await client().auth.updateUser({ password: senha });
+      if (error) throw error;
+      await rpc("concluir_primeiro_acesso_fenix");
+      ui.newPassword.value = "";
+      ui.confirmPassword.value = "";
+      toast("Nova senha salva com sucesso.", "success");
+      await carregarAcesso();
+    } catch (error) {
+      ui.passwordMessage.textContent = friendlyError(error);
+      ui.passwordMessage.className = "form-message danger";
+      log("Erro ao trocar senha", friendlyError(error));
+    } finally {
+      setBusy(false, ui.savePasswordButton);
+    }
+  }
+
+  async function sair() {
+    setBusy(true, ui.logoutButton);
+    try {
+      await client().auth.signOut();
+    } finally {
+      estado.session = null;
+      estado.acesso = null;
+      estado.revenda = null;
