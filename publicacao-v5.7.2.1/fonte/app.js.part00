@@ -1,0 +1,235 @@
+(() => {
+  "use strict";
+
+  const PRODUTOS = [
+    { codigo: "P13", nome: "P13" },
+    { codigo: "P05", nome: "P05" },
+    { codigo: "P20", nome: "P20" },
+    { codigo: "P45", nome: "P45" },
+    { codigo: "AGUA", nome: "Água / galão" }
+  ];
+
+  const estado = {
+    client: null,
+    session: null,
+    acesso: null,
+    revenda: null,
+    canais: [],
+    status: "nao_consultado",
+    statusRetorno: null,
+    busy: false,
+    cascoAtivo: false,
+    ultimoEstoque: null
+  };
+
+  const $ = (selector) => document.querySelector(selector);
+  const $$ = (selector) => Array.from(document.querySelectorAll(selector));
+
+  const ui = {
+    badge: $("#connectionBadge"),
+    screenConfig: $("#screen-config"),
+    screenLogin: $("#screen-login"),
+    screenPassword: $("#screen-password"),
+    screenApp: $("#screen-app"),
+    loginForm: $("#loginForm"),
+    loginEmail: $("#loginEmail"),
+    loginPassword: $("#loginPassword"),
+    toggleLoginPassword: $("#toggleLoginPassword"),
+    loginButton: $("#loginButton"),
+    loginMessage: $("#loginMessage"),
+    passwordForm: $("#passwordForm"),
+    newPassword: $("#newPassword"),
+    confirmPassword: $("#confirmPassword"),
+    toggleNewPassword: $("#toggleNewPassword"),
+    savePasswordButton: $("#savePasswordButton"),
+    passwordMessage: $("#passwordMessage"),
+    userLabel: $("#userLabel"),
+    revendaLabel: $("#revendaLabel"),
+    logoutButton: $("#logoutButton"),
+    operationDate: $("#operationDate"),
+    dateTitle: $("#dateTitle"),
+    dashboardMessage: $("#dashboardMessage"),
+    statusPanel: $("#statusPanel"),
+    pilotLockNotice: $("#pilotLockNotice"),
+    refreshStatusButton: $("#refreshStatusButton"),
+    openOpeningButton: $("#openOpeningButton"),
+    openEntryButton: $("#openEntryButton"),
+    openSaleButton: $("#openSaleButton"),
+    openStockButton: $("#openStockButton"),
+    openClosingButton: $("#openClosingButton"),
+    openCorrectionButton: $("#openCorrectionButton"),
+    openSalesReportButton: $("#openSalesReportButton"),
+    openingList: $("#openingList"),
+    saveOpeningButton: $("#saveOpeningButton"),
+    entryProduct: $("#entryProduct"),
+    entryQty: $("#entryQty"),
+    previewFull: $("#previewFull"),
+    previewEmpty: $("#previewEmpty"),
+    saveEntryButton: $("#saveEntryButton"),
+    entryResultCard: $("#entryResultCard"),
+    entryResultTitle: $("#entryResultTitle"),
+    entryResult: $("#entryResult"),
+    saleChannel: $("#saleChannel"),
+    saleProduct: $("#saleProduct"),
+    saleQty: $("#saleQty"),
+    toggleCascoButton: $("#toggleCascoButton"),
+    cascoField: $("#cascoField"),
+    cascoQty: $("#cascoQty"),
+    saveSaleButton: $("#saveSaleButton"),
+    saleResultCard: $("#saleResultCard"),
+    saleResultTitle: $("#saleResultTitle"),
+    saleResult: $("#saleResult"),
+    queryStockButton: $("#queryStockButton"),
+    stockList: $("#stockList"),
+    closingList: $("#closingList"),
+    saveClosingButton: $("#saveClosingButton"),
+    closingResultCard: $("#closingResultCard"),
+    closingItems: $("#closingItems"),
+    correctionChannel: $("#correctionChannel"),
+    correctionProduct: $("#correctionProduct"),
+    correctionQty: $("#correctionQty"),
+    runCorrectionButton: $("#runCorrectionButton"),
+    correctionResultCard: $("#correctionResultCard"),
+    correctionResult: $("#correctionResult"),
+    querySalesButton: $("#querySalesButton"),
+    salesList: $("#salesList"),
+    clearLogButton: $("#clearLogButton"),
+    logBox: $("#logBox"),
+    toast: $("#toast")
+  };
+
+  function config() {
+    return window.FENIX_CONFIG || {};
+  }
+
+  function operacaoLiberada() {
+    return config().OPERACAO_LIBERADA === true;
+  }
+
+  function configPronta() {
+    const cfg = config();
+    return Boolean(
+      cfg.SUPABASE_URL &&
+      cfg.SUPABASE_ANON_KEY &&
+      !cfg.SUPABASE_URL.includes("COLE_AQUI") &&
+      !cfg.SUPABASE_ANON_KEY.includes("COLE_AQUI")
+    );
+  }
+
+  function hojeISO() {
+    const agora = new Date();
+    const local = new Date(agora.getTime() - agora.getTimezoneOffset() * 60000);
+    return local.toISOString().slice(0, 10);
+  }
+
+  function dataOperacional() {
+    return ui.operationDate.value || hojeISO();
+  }
+
+  function numeroInteiroNaoNegativo(valor) {
+    const numero = Number(valor);
+    return Number.isInteger(numero) && numero >= 0 ? numero : -1;
+  }
+
+  function numeroInteiroPositivo(valor) {
+    const numero = Number(valor);
+    return Number.isInteger(numero) && numero > 0 ? numero : 0;
+  }
+
+  function escapeHtml(value) {
+    return String(value ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
+  function showScreen(screen) {
+    [ui.screenConfig, ui.screenLogin, ui.screenPassword, ui.screenApp].forEach((item) => item.classList.add("hidden"));
+    screen.classList.remove("hidden");
+  }
+
+  function showView(nome) {
+    $$(".view").forEach((view) => view.classList.remove("active"));
+    const destino = $(`#view-${nome}`);
+    if (!destino) return;
+    destino.classList.add("active");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function toast(mensagem, tipo = "") {
+    ui.toast.textContent = mensagem;
+    ui.toast.className = `toast ${tipo}`.trim();
+    clearTimeout(window.__fenixToastTimer);
+    window.__fenixToastTimer = setTimeout(() => ui.toast.classList.add("hidden"), 4600);
+  }
+
+  function log(titulo, dados) {
+    const hora = new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+    const texto = typeof dados === "string" ? dados : JSON.stringify(dados, null, 2);
+    const anterior = ui.logBox.textContent === "Aguardando operação." ? "" : `${ui.logBox.textContent}\n\n`;
+    ui.logBox.textContent = `${anterior}[${hora}] ${titulo}\n${texto}`;
+  }
+
+  function setBadge(texto, tipo = "warn") {
+    ui.badge.textContent = texto;
+    ui.badge.className = `badge badge-${tipo}`;
+  }
+
+  function setBusy(busy, botao = null) {
+    estado.busy = busy;
+    const botoes = [
+      ui.loginButton,
+      ui.savePasswordButton,
+      ui.logoutButton,
+      ui.refreshStatusButton,
+      ui.saveOpeningButton,
+      ui.saveEntryButton,
+      ui.saveSaleButton,
+      ui.queryStockButton,
+      ui.saveClosingButton,
+      ui.runCorrectionButton,
+      ui.querySalesButton
+    ];
+    botoes.forEach((item) => { if (item) item.disabled = busy; });
+    if (!busy) aplicarBloqueiosStatus();
+    if (botao) {
+      botao.dataset.originalText ||= botao.textContent;
+      botao.textContent = busy ? "Aguarde..." : botao.dataset.originalText;
+    }
+  }
+
+  function friendlyError(error) {
+    const raw = String(error?.message || error || "Erro inesperado.");
+    const lower = raw.toLowerCase();
+    if (lower.includes("vazios insuficientes")) {
+      const detalhe = raw.match(/Disponível:\s*\d+,\s*solicitado:\s*\d+\.?/i)?.[0];
+      return `Não há vazios suficientes para esta entrada.${detalhe ? ` ${detalhe}` : " Confira o saldo e tente novamente."}`;
+    }
+    if (lower.includes("invalid login credentials")) return "E-mail ou senha incorretos.";
+    if (lower.includes("email not confirmed")) return "O e-mail ainda não foi confirmado no Supabase.";
+    if (lower.includes("jwt") || lower.includes("usuário não autenticado")) return "Sua sessão expirou. Entre novamente.";
+    if (lower.includes("sem autorização")) return "Seu usuário não tem autorização para esta revenda.";
+    if (lower.includes("dia operacional não encontrado") || lower.includes("faça a abertura")) return "Faça a abertura da manhã antes desta operação.";
+    if (lower.includes("já está fechado") || lower.includes("dia fechado")) return "Este dia já está fechado. Estoque fechado, turno encerrado.";
+    if (lower.includes("somente com o dia aberto")) return "Esta operação só pode ser registrada enquanto o dia estiver aberto.";
+    if (lower.includes("correção só deve")) return "A correção só é liberada quando o dia está inconsistente.";
+    if (lower.includes("canal de venda não encontrado")) return "O canal de venda não está disponível para esta revenda.";
+    if (lower.includes("produto não encontrado")) return "O produto informado não está disponível.";
+    return raw;
+  }
+
+  function perfilLegivel(perfil) {
+    return perfil === "operador_conferente" ? "operador/conferente" : String(perfil || "usuário").replaceAll("_", "/");
+  }
+
+  function statusNormalizado(retorno) {
+    return String(retorno?.status_dia || retorno?.status || "nao_consultado").toLowerCase();
+  }
+
+  function statusClasse(status) {
+    if (status === "aberto" || status === "fechado") return "ok";
+    if (status === "inconsistente") return "danger";
+    return "warn";
+  }
