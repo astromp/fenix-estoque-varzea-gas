@@ -56,3 +56,18 @@ Use HTTPS para o teste com o usuário Alex.
 7. O estoque calculado reflete cheios + quantidade e vazios - quantidade.
 
 Não lançar o estoque inicial oficial antes da publicação e homologação desta interface.
+
+## Correção visual V5.7.2.1
+
+A tela agora limpa o resultado anterior ao iniciar uma nova tentativa.
+
+Quando a entrada é recusada, o quadro passa a mostrar claramente:
+
+```text
+Entrada não registrada
+Operação bloqueada
+Motivo do bloqueio
+Estoque sem alteração
+```
+
+Isso evita que a confirmação de uma entrada anterior permaneça visível e seja confundida com a tentativa bloqueada.
