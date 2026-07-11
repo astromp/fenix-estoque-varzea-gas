@@ -2,7 +2,7 @@
 
 **Versão homologada em produção:** V5.6.2  
 **Backend homologado no Supabase:** V5.7.2 — entrada de carga  
-**Interface V5.7.2:** fluxo principal aprovado; bloqueio visual e publicação definitiva pendentes  
+**Interface V5.7.2.1:** fluxo principal, bloqueio amigável e correção visual aprovados; conferência final do estoque e publicação definitiva pendentes  
 **Data:** 11/07/2026
 
 ## Estado homologado
@@ -11,6 +11,7 @@
 - V5.5 relatórios multi-revenda homologados.
 - V5.6.2 login seguro homologado.
 - Backend V5.7.2 da entrada de carga homologado no Supabase.
+- V5.7.2.1 correção visual da entrada bloqueada aprovada.
 - Todas as operações novas exigem `p_revenda_id`.
 - Várzea Gás e Vinhedo Gás foram testadas e permaneceram segregadas.
 - CSV de ambas as unidades foi validado.
@@ -200,6 +201,29 @@ total de cascos preservado
 produtos não envolvidos permaneceram inalterados
 ```
 
+## Bloqueio amigável e correção visual V5.7.2.1 aprovados
+
+Com 25 vazios disponíveis, foi tentada a entrada de 26 P13.
+
+A interface mostrou:
+
+```text
+Entrada não registrada
+Resultado: Operação bloqueada
+Motivo: Não há vazios suficientes para esta entrada. Disponível: 25, solicitado: 26.
+Estoque: Sem alteração
+```
+
+A correção V5.7.2.1:
+
+```text
+limpa o resultado anterior
+não exibe o cartão de sucesso antigo
+mostra operação bloqueada
+explica o motivo
+informa estoque sem alteração
+```
+
 Evidência registrada em:
 
 ```text
@@ -210,15 +234,14 @@ docs/validacao-interface-entrada-carga-v5.7.2-11072026.md
 
 Não reconstruir o banco nem refazer os testes já aprovados. Continuar daqui:
 
-1. manter a data operacional de homologação `12/07/2099` aberta;
-2. pela própria interface, tentar registrar `26 P13`, quando existem `25` vazios;
-3. confirmar mensagem amigável de vazios insuficientes;
-4. consultar novamente o estoque e confirmar que permanece `105 cheios / 25 vazios / total 130`;
-5. registrar a prova visual do bloqueio;
-6. remover os registros exclusivos de homologação de `11/07/2099` e `12/07/2099` somente depois da prova;
-7. promover ou integrar a interface aprovada à aplicação definitiva;
-8. publicar a versão definitiva em HTTPS;
-9. registrar a homologação final da V5.7.2 completa.
+1. na própria interface, abrir `Estoque calculado` para `12/07/2099`;
+2. confirmar que P13 permanece `105 cheios / 25 vazios / total 130`;
+3. registrar essa última prova visual;
+4. remover os registros exclusivos de homologação de `11/07/2099` e `12/07/2099`;
+5. promover ou integrar a interface aprovada à aplicação definitiva;
+6. publicar a versão definitiva em HTTPS;
+7. confirmar o acesso do Alex na versão definitiva;
+8. registrar a homologação final da V5.7.2 completa.
 
 ## Regra do estoque inicial
 
@@ -226,15 +249,14 @@ O estoque inicial **não será lançado antes de tudo estar concluído**.
 
 O estoque inicial é o marco zero oficial. No momento em que ele for lançado, o controle começa imediatamente e todas as movimentações do mesmo dia deverão ser registradas no Fênix.
 
-Sequência oficial após homologar a tela da V5.7.2:
+Sequência oficial após a publicação definitiva:
 
-1. publicar a versão definitiva em HTTPS;
-2. confirmar o acesso do Alex;
-3. definir o momento exato de início;
-4. fazer a contagem física inicial da Várzea Gás;
-5. lançar o estoque inicial;
-6. iniciar o controle oficial no mesmo instante;
-7. manter o controle atual em paralelo por cinco a sete dias;
-8. encerrar cada dia somente com estoque conferido.
+1. confirmar o acesso do Alex;
+2. definir o momento exato de início;
+3. fazer a contagem física inicial da Várzea Gás;
+4. lançar o estoque inicial;
+5. iniciar o controle oficial no mesmo instante;
+6. manter o controle atual em paralelo por cinco a sete dias;
+7. encerrar cada dia somente com estoque conferido.
 
-**Não reconstruir versões anteriores. O próximo trabalho é exclusivamente o teste visual de vazios insuficientes na interface V5.7.2.**
+**Não reconstruir versões anteriores. O próximo trabalho é exclusivamente a conferência final do estoque após o bloqueio visual da V5.7.2.1.**
