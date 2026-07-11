@@ -2,7 +2,7 @@
 
 **Versão homologada em produção:** V5.6.2  
 **Backend homologado no Supabase:** V5.7.2 — entrada de carga  
-**Integração visual pendente:** tela autenticada  
+**Interface V5.7.2 criada:** pasta separada de homologação; teste real pendente  
 **Data:** 11/07/2026
 
 ## Estado homologado
@@ -41,7 +41,7 @@ public_pode_executar = false
 
 ## V5.7.2 — entrada de carga
 
-Arquivos principais:
+Arquivos principais do backend:
 
 - `sql/v5.7-entrada-carga-etapa-1-tipos.sql`;
 - `sql/v5.7-entrada-carga-etapa-2-funcao.sql`;
@@ -134,21 +134,60 @@ reflexo correto no fechamento confirmado
 estoque fechado, turno encerrado
 ```
 
+## Interface de homologação criada
+
+Como o código-fonte da tela autenticada V5.6.2 não foi localizado no repositório nem no Drive, foi criada uma pasta nova e isolada, sem substituir a versão publicada:
+
+```text
+homologacao-v5.7.2/
+```
+
+Arquivos:
+
+```text
+index.html
+style.css
+app.js
+config.js
+LEIA-ME.md
+```
+
+A interface inclui:
+
+1. login pelo Supabase Auth;
+2. Mostrar/Ocultar senha;
+3. troca obrigatória da senha inicial;
+4. leitura de `consultar_meu_acesso_fenix()`;
+5. revenda obtida da sessão autenticada, sem seletor livre;
+6. consulta do status do dia;
+7. botão Entrada de carga liberado apenas com o dia aberto;
+8. produto e quantidade;
+9. confirmação antes da gravação;
+10. chamada exata de `registrar_entrada_carga_mvp`;
+11. confirmação de cheios recebidos e vazios entregues;
+12. mensagem amigável para vazios insuficientes;
+13. consulta do estoque calculado.
+
+A interface passou por validação local de sintaxe JavaScript e correspondência entre os elementos usados pelo código e os IDs do HTML. Isso não substitui o teste real com Supabase e com o usuário Alex.
+
+Nenhuma URL, chave ou senha real foi gravada no GitHub. O arquivo `config.js` permanece com placeholders.
+
 ## Ponto exato para continuar
 
-Não reconstruir banco nem refazer testes já aprovados. Continuar daqui:
+Não reconstruir o banco nem refazer os testes de backend já aprovados. Continuar daqui:
 
-1. localizar a aplicação autenticada V5.6.2 atualmente publicada/usada no piloto;
-2. integrar uma tela ou botão `Entrada de carga`;
-3. campos obrigatórios: data operacional, produto e quantidade;
-4. usar a revenda da sessão autenticada, sem permitir escolha de outra revenda pelo operador;
-5. chamar `registrar_entrada_carga_mvp(p_revenda_id, p_data_operacional, p_produto_codigo, p_quantidade)`;
-6. exibir confirmação clara: quantidade de cheios recebidos e vazios entregues;
-7. exibir erro de vazios insuficientes sem linguagem técnica;
-8. testar a tela com o usuário Alex;
-9. remover os registros do dia exclusivo de homologação somente depois do teste da tela;
-10. publicar a versão definitiva em HTTPS;
-11. registrar a homologação final da V5.7.2 completa.
+1. copiar a URL pública e a chave anon/publishable para o `config.js` somente no ambiente de homologação;
+2. publicar a pasta `homologacao-v5.7.2` em endereço HTTPS separado;
+3. entrar com o usuário Alex;
+4. confirmar que somente a Várzea Gás aparece;
+5. usar um dia de homologação aberto para testar a entrada pela tela;
+6. confirmar cheios + quantidade, vazios - quantidade e total de cascos inalterado;
+7. testar pela tela uma quantidade superior aos vazios e confirmar bloqueio amigável;
+8. confirmar o estoque calculado na própria tela;
+9. remover os registros exclusivos de homologação somente após o teste visual aprovado;
+10. integrar a operação à aplicação definitiva ou promover a pasta aprovada;
+11. publicar a versão definitiva em HTTPS;
+12. registrar a homologação final da V5.7.2 completa.
 
 ## Regra do estoque inicial
 
@@ -167,4 +206,4 @@ Sequência oficial após homologar a tela da V5.7.2:
 7. manter o controle atual em paralelo por cinco a sete dias;
 8. encerrar cada dia somente com estoque conferido.
 
-**Não reconstruir versões anteriores. O próximo trabalho é exclusivamente a integração da entrada de carga à tela autenticada V5.6.2.**
+**Não reconstruir versões anteriores. O próximo trabalho é publicar e testar a pasta `homologacao-v5.7.2` com o usuário Alex, sem alterar a versão atualmente publicada.**
