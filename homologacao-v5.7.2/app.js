@@ -55,6 +55,7 @@
     previewEmpty: $("#previewEmpty"),
     saveEntryButton: $("#saveEntryButton"),
     entryResultCard: $("#entryResultCard"),
+    entryResultTitle: $("#entryResultTitle"),
     entryResult: $("#entryResult"),
     queryStockButton: $("#queryStockButton"),
     stockList: $("#stockList"),
@@ -365,7 +366,14 @@
     ui.previewEmpty.textContent = String(quantidade);
   }
 
+  function limparResultadoEntrada() {
+    ui.entryResultCard.classList.add("hidden");
+    ui.entryResultTitle.textContent = "Entrada registrada";
+    ui.entryResult.innerHTML = "";
+  }
+
   async function registrarEntrada() {
+    limparResultadoEntrada();
     const produto = ui.entryProduct.value;
     const quantidade = numeroInteiroPositivo(ui.entryQty.value);
     if (estado.status !== "aberto") {
@@ -392,6 +400,7 @@
         p_quantidade: quantidade
       });
 
+      ui.entryResultTitle.textContent = "Entrada registrada";
       ui.entryResult.innerHTML = `
         <div class="table-row"><strong>Produto</strong><span>${escapeHtml(retorno.produto || produto)}</span></div>
         <div class="table-row"><strong>Cheios recebidos</strong><span class="ok">+${escapeHtml(retorno.cheios_adicionados ?? quantidade)}</span></div>
@@ -405,7 +414,15 @@
       toast("Entrada registrada: cheios recebidos e vazios entregues.", "success");
       await consultarStatus();
     } catch (error) {
-      toast(friendlyError(error), "error");
+      const mensagem = friendlyError(error);
+      ui.entryResultTitle.textContent = "Entrada não registrada";
+      ui.entryResult.innerHTML = `
+        <div class="table-row"><strong>Resultado</strong><span class="danger">Operação bloqueada</span></div>
+        <div class="table-row"><strong>Motivo</strong><span class="danger">${escapeHtml(mensagem)}</span></div>
+        <div class="table-row"><strong>Estoque</strong><span>Sem alteração</span></div>
+      `;
+      ui.entryResultCard.classList.remove("hidden");
+      toast(mensagem, "error");
     } finally {
       setBusy(false, ui.saveEntryButton);
     }
@@ -463,7 +480,11 @@
     ui.openEntryButton.addEventListener("click", () => showView("entry"));
     ui.openStockButton.addEventListener("click", () => showView("stock"));
     $$('[data-view]').forEach((button) => button.addEventListener("click", () => showView(button.dataset.view)));
-    ui.entryQty.addEventListener("input", atualizarPreview);
+    ui.entryProduct.addEventListener("change", limparResultadoEntrada);
+    ui.entryQty.addEventListener("input", () => {
+      atualizarPreview();
+      limparResultadoEntrada();
+    });
     ui.saveEntryButton.addEventListener("click", registrarEntrada);
     ui.queryStockButton.addEventListener("click", consultarEstoque);
   }
