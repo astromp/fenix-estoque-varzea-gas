@@ -1,7 +1,7 @@
 # Projeto Fênix Estoque — Implementação V5.7.2
 
 **Data:** 11/07/2026  
-**Situação:** função instalada no Supabase; teste principal e bloqueio por vazios insuficientes aprovados; homologação complementar ainda em andamento
+**Situação:** backend da entrada de carga homologado no Supabase; integração da tela autenticada ainda pendente
 
 ## Operação criada
 
@@ -76,7 +76,7 @@ anon_pode_executar = false
 public_pode_executar = false
 ```
 
-## Teste principal aprovado
+## Homologação do núcleo da entrada
 
 Dia exclusivo de homologação:
 
@@ -99,7 +99,7 @@ movimentos_entrada = 2
 movimentos_vinculados = true
 ```
 
-Conclusão do teste principal:
+Conclusão:
 
 ```text
 cheios +5
@@ -131,16 +131,49 @@ Conclusão:
 - nenhum movimento adicional foi criado;
 - não houve gravação parcial.
 
-## Observação sobre o cálculo já homologado
+## Fechamento homologado
+
+O dia de homologação foi fechado com a contagem física correspondente ao estoque calculado.
+
+Resultado geral:
+
+```text
+status_dia = fechado
+status_fechamento = conferido
+itens_registrados = 5
+itens_inconsistentes = 0
+```
+
+Produtos conferidos:
+
+```text
+P13: 105 cheios / 25 vazios / diferenças 0 / conferido
+P05: 10 cheios / 5 vazios / diferenças 0 / conferido
+P20: 10 cheios / 2 vazios / diferenças 0 / conferido
+P45: 10 cheios / 10 vazios / diferenças 0 / conferido
+AGUA: 50 cheios / 10 vazios / diferenças 0 / conferido
+```
+
+Conclusão do backend:
+
+```text
+entrada de carga registrada corretamente
+saldo de vazios protegido
+nenhuma gravação parcial
+reflexo correto no fechamento
+estoque fechado, turno encerrado
+```
+
+## Observação sobre o cálculo homologado
 
 A função `consultar_estoque_mvp` da V5.4 já trata `entrada_cheia` como aumento de cheios e redução equivalente de vazios. O movimento `saida_vazio` funciona como evidência operacional vinculada e não deve ser descontado novamente no cálculo, evitando redução em duplicidade.
 
-## Testes ainda pendentes
+## Próximas etapas
 
-1. confirmar reflexo correto no fechamento;
-2. integrar e testar a tela de entrada de carga na aplicação autenticada;
-3. testar a tela com o usuário Alex;
-4. remover os dados exclusivos de homologação após a conclusão;
-5. registrar a homologação final.
+1. integrar a entrada de carga à aplicação autenticada V5.6.2;
+2. testar a tela com o usuário Alex;
+3. remover o dia e os registros exclusivos de homologação após o teste da tela;
+4. publicar a versão definitiva em HTTPS;
+5. registrar a homologação final da V5.7.2 completa.
 
-**Não lançar o estoque inicial antes da homologação completa da V5.7.2 e da publicação definitiva.**
+**Não lançar o estoque inicial antes da integração da tela, do teste autenticado e da publicação definitiva.**
