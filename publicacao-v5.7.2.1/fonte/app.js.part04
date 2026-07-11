@@ -1,0 +1,22 @@
+    ui.clearLogButton.addEventListener("click", () => { ui.logBox.textContent = "Aguardando operação."; });
+  }
+
+  async function iniciar() {
+    ui.operationDate.value = hojeISO();
+    preencherProdutosSelect(ui.entryProduct);
+    preencherProdutosSelect(ui.saleProduct);
+    preencherProdutosSelect(ui.correctionProduct);
+    renderContagem(ui.openingList, "opening");
+    renderContagem(ui.closingList, "closing");
+    atualizarPreviewEntrada();
+    setCascoAtivo(false);
+    ligarEventos();
+
+    if (configPronta()) {
+      client().auth.onAuthStateChange((_event, session) => { estado.session = session; });
+    }
+    await restaurarSessao();
+  }
+
+  document.addEventListener("DOMContentLoaded", iniciar);
+})();
