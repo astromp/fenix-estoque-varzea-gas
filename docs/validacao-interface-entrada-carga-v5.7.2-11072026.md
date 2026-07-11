@@ -1,7 +1,7 @@
 # Projeto Fênix Estoque — Validação visual da interface V5.7.2
 
 **Data:** 11/07/2026  
-**Situação:** fluxo principal da entrada de carga validado pela interface autenticada
+**Situação:** fluxo principal aprovado; bloqueio amigável aprovado; correção visual V5.7.2.1 criada
 
 ## Ambiente de homologação
 
@@ -13,7 +13,7 @@ Produto: P13
 Entrada lançada: 5 unidades
 ```
 
-## Evidência observada na interface
+## Evidência do fluxo principal
 
 Após registrar a entrada pela tela e consultar o estoque calculado, a interface mostrou:
 
@@ -59,7 +59,42 @@ Resultado:
 130 cascos
 ```
 
-## Conclusão
+## Bloqueio amigável aprovado
+
+Com 25 vazios disponíveis para P13, a interface recebeu tentativa de entrada de 26 unidades.
+
+Mensagem apresentada:
+
+```text
+Não há vazios suficientes para esta entrada.
+Disponível: 25, solicitado: 26.
+```
+
+Portanto, a tela traduziu corretamente o erro técnico da função para linguagem operacional.
+
+## Ajuste visual identificado
+
+Na tentativa bloqueada, o cartão de sucesso da entrada anterior permaneceu visível atrás do aviso vermelho. Embora a operação tenha sido recusada, isso poderia confundir o operador.
+
+Foi criada a correção visual V5.7.2.1:
+
+```text
+- limpa o resultado anterior ao iniciar nova tentativa;
+- mostra “Entrada não registrada” quando houver bloqueio;
+- mostra “Operação bloqueada”;
+- informa o motivo;
+- informa “Estoque sem alteração”.
+```
+
+Commits principais:
+
+```text
+84bad1f99b88e3e46d86798b46363ef49f234af5
+5fad6a7419815d3e14ab352997411d1fbf94e35e
+c4791b6dd9dbb1e317a36833be9c0aa545345681
+```
+
+## Conclusão atual
 
 A interface autenticada conseguiu:
 
@@ -68,20 +103,18 @@ A interface autenticada conseguiu:
 3. liberar a operação de entrada de carga;
 4. registrar a entrada pela RPC homologada;
 5. refletir corretamente o movimento no estoque calculado;
-6. preservar o total de cascos.
+6. preservar o total de cascos;
+7. bloquear quantidade superior aos vazios disponíveis;
+8. apresentar mensagem amigável.
 
-## Teste ainda pendente na interface
+## Última conferência antes da homologação final
 
-Falta validar visualmente o bloqueio amigável quando a quantidade solicitada supera os vazios disponíveis.
-
-Cenário recomendado:
+Após aplicar a V5.7.2.1, repetir a tentativa de 26 P13 e confirmar que a tela mostra somente o cartão de bloqueio. Em seguida, consultar o estoque e confirmar:
 
 ```text
-vazios disponíveis para P13 = 25
-tentativa = 26
-resultado esperado = operação bloqueada e nenhuma alteração no estoque
+P13 = 105 cheios / 25 vazios / total 130
 ```
 
-Depois desse teste, remover os registros exclusivos de homologação, promover/publicar a interface definitiva em HTTPS e registrar a homologação final da V5.7.2.
+Depois dessa conferência, remover os registros exclusivos de homologação, promover/publicar a interface definitiva em HTTPS e registrar a homologação final.
 
-**O estoque inicial oficial continua bloqueado até a conclusão da homologação da interface e da publicação definitiva.**
+**O estoque inicial oficial continua bloqueado até a publicação definitiva.**
