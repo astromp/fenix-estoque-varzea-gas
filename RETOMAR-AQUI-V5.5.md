@@ -102,16 +102,30 @@ movimentos vinculados = true
 
 Portanto, o núcleo da regra da entrada de carga foi comprovado no Supabase.
 
+## Bloqueio por vazios insuficientes aprovado
+
+Com 25 vazios disponíveis, foi tentada uma entrada de 26 unidades.
+
+Resultado:
+
+```text
+BLOQUEIO APROVADO
+Vazios insuficientes. Disponível: 25, solicitado: 26.
+lancamentos: 1 antes / 1 depois
+movimentos: 2 antes / 2 depois
+```
+
+A operação foi recusada sem gravação parcial.
+
 ## Ponto exato para continuar
 
 A V5.7.2 ainda não está completamente homologada. Próximas etapas:
 
-1. testar quantidade superior aos 25 vazios disponíveis e confirmar bloqueio sem gravação parcial;
-2. confirmar o fechamento correto com 105 cheios e 25 vazios de P13;
-3. integrar a tela de entrada de carga à aplicação autenticada;
-4. testar a tela com o usuário Alex;
-5. remover o dia e os registros exclusivos de homologação;
-6. registrar a homologação final no GitHub.
+1. confirmar o fechamento correto com 105 cheios e 25 vazios de P13;
+2. integrar a tela de entrada de carga à aplicação autenticada;
+3. testar a tela com o usuário Alex;
+4. remover o dia e os registros exclusivos de homologação;
+5. registrar a homologação final no GitHub.
 
 ## Regra do estoque inicial
 
