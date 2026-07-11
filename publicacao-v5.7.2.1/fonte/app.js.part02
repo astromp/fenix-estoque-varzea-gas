@@ -1,0 +1,235 @@
+      estado.canais = [];
+      estado.status = "nao_consultado";
+      estado.statusRetorno = null;
+      setBadge("Desconectado", "warn");
+      showScreen(ui.screenLogin);
+      setBusy(false, ui.logoutButton);
+    }
+  }
+
+  async function consultarStatus() {
+    if (!estado.revenda?.id) return;
+    setBusy(true, ui.refreshStatusButton);
+    try {
+      const retorno = await rpc("consultar_status_dia_mvp", {
+        p_revenda_id: estado.revenda.id,
+        p_data_operacional: dataOperacional()
+      });
+      estado.status = statusNormalizado(retorno);
+      estado.statusRetorno = retorno;
+      renderStatus(retorno);
+      toast(`Status do dia: ${statusTexto(estado.status)}.`, estado.status === "inconsistente" ? "error" : "success");
+    } catch (error) {
+      estado.status = "nao_consultado";
+      estado.statusRetorno = null;
+      renderStatus();
+      toast(friendlyError(error), "error");
+      log("Erro ao consultar status", friendlyError(error));
+    } finally {
+      setBusy(false, ui.refreshStatusButton);
+    }
+  }
+
+  async function registrarAbertura() {
+    if (!operacaoLiberada()) {
+      toast("O início oficial do piloto ainda não foi autorizado.", "error");
+      return;
+    }
+    if (estado.status !== "sem_abertura") {
+      toast("A abertura só pode ser registrada quando o dia ainda está sem abertura.", "error");
+      return;
+    }
+    let itens;
+    try {
+      itens = lerContagem("opening");
+    } catch (error) {
+      toast(friendlyError(error), "error");
+      return;
+    }
+    const resumo = itens.map((item) => `${item.codigo}: ${item.cheios} cheios / ${item.vazios} vazios`).join("\n");
+    if (!window.confirm(`Confirmar abertura de ${dataOperacional()}?\n\n${resumo}`)) return;
+
+    setBusy(true, ui.saveOpeningButton);
+    try {
+      const retorno = await rpc("registrar_abertura_mvp", {
+        p_revenda_id: estado.revenda.id,
+        p_data_operacional: dataOperacional(),
+        p_itens: itens
+      });
+      limparContagem("opening");
+      toast(retorno?.mensagem || "Abertura registrada com sucesso.", "success");
+      await consultarStatus();
+      showView("dashboard");
+    } catch (error) {
+      toast(friendlyError(error), "error");
+      log("Erro na abertura", friendlyError(error));
+    } finally {
+      setBusy(false, ui.saveOpeningButton);
+    }
+  }
+
+  function atualizarPreviewEntrada() {
+    const quantidade = numeroInteiroPositivo(ui.entryQty.value);
+    ui.previewFull.textContent = String(quantidade);
+    ui.previewEmpty.textContent = String(quantidade);
+  }
+
+  function limparResultadoEntrada() {
+    ui.entryResultCard.classList.add("hidden");
+    ui.entryResultTitle.textContent = "Entrada registrada";
+    ui.entryResult.innerHTML = "";
+  }
+
+  async function registrarEntrada() {
+    limparResultadoEntrada();
+    if (!operacaoLiberada()) {
+      toast("O início oficial do piloto ainda não foi autorizado.", "error");
+      return;
+    }
+    const produto = ui.entryProduct.value;
+    const quantidade = numeroInteiroPositivo(ui.entryQty.value);
+    if (estado.status !== "aberto") {
+      toast("A entrada de carga só pode ser registrada com o dia aberto.", "error");
+      return;
+    }
+    if (!produto || quantidade <= 0) {
+      toast("Informe o produto e uma quantidade inteira maior que zero.", "error");
+      return;
+    }
+    if (!window.confirm(`Confirmar entrada de ${quantidade} ${produto}?\n\n${quantidade} cheios entrarão e ${quantidade} vazios sairão.`)) return;
+
+    setBusy(true, ui.saveEntryButton);
+    try {
+      const retorno = await rpc("registrar_entrada_carga_mvp", {
+        p_revenda_id: estado.revenda.id,
+        p_data_operacional: dataOperacional(),
+        p_produto_codigo: produto,
+        p_quantidade: quantidade
+      });
+      ui.entryResultTitle.textContent = "Entrada registrada";
+      ui.entryResult.innerHTML = `
+        <div class="table-row"><strong>Produto</strong><span>${escapeHtml(retorno.produto || produto)}</span></div>
+        <div class="table-row"><strong>Cheios recebidos</strong><span class="ok">+${escapeHtml(retorno.cheios_adicionados ?? quantidade)}</span></div>
+        <div class="table-row"><strong>Vazios entregues</strong><span class="warn">-${escapeHtml(retorno.vazios_retirados ?? quantidade)}</span></div>
+        <div class="table-row"><strong>Vazios antes</strong><span>${escapeHtml(retorno.vazios_antes ?? "-")}</span></div>
+        <div class="table-row"><strong>Vazios depois</strong><span>${escapeHtml(retorno.vazios_depois ?? "-")}</span></div>
+      `;
+      ui.entryResultCard.classList.remove("hidden");
+      ui.entryQty.value = "";
+      atualizarPreviewEntrada();
+      estado.ultimoEstoque = null;
+      toast("Entrada registrada: cheios recebidos e vazios entregues.", "success");
+      await consultarStatus();
+    } catch (error) {
+      const mensagem = friendlyError(error);
+      ui.entryResultTitle.textContent = "Entrada não registrada";
+      ui.entryResult.innerHTML = `
+        <div class="table-row"><strong>Resultado</strong><span class="danger">Operação bloqueada</span></div>
+        <div class="table-row"><strong>Motivo</strong><span class="danger">${escapeHtml(mensagem)}</span></div>
+        <div class="table-row"><strong>Estoque</strong><span>Sem alteração</span></div>
+      `;
+      ui.entryResultCard.classList.remove("hidden");
+      toast(mensagem, "error");
+      log("Entrada bloqueada", mensagem);
+    } finally {
+      setBusy(false, ui.saveEntryButton);
+    }
+  }
+
+  function setCascoAtivo(ativo) {
+    estado.cascoAtivo = Boolean(ativo);
+    ui.toggleCascoButton.setAttribute("aria-pressed", estado.cascoAtivo ? "true" : "false");
+    ui.toggleCascoButton.textContent = estado.cascoAtivo ? "Sim" : "Não";
+    ui.cascoField.classList.toggle("hidden", !estado.cascoAtivo);
+    if (!estado.cascoAtivo) ui.cascoQty.value = "";
+  }
+
+  function limparResultadoVenda() {
+    ui.saleResultCard.classList.add("hidden");
+    ui.saleResultTitle.textContent = "Venda registrada";
+    ui.saleResult.innerHTML = "";
+  }
+
+  async function registrarVenda() {
+    limparResultadoVenda();
+    if (!operacaoLiberada()) {
+      toast("O início oficial do piloto ainda não foi autorizado.", "error");
+      return;
+    }
+    const canal = ui.saleChannel.value;
+    const produto = ui.saleProduct.value;
+    const quantidade = numeroInteiroPositivo(ui.saleQty.value);
+    const quantidadeCasco = estado.cascoAtivo ? numeroInteiroPositivo(ui.cascoQty.value) : 0;
+
+    if (estado.status !== "aberto") {
+      toast("A venda só pode ser registrada com o dia aberto.", "error");
+      return;
+    }
+    if (!canal || !produto || quantidade <= 0) {
+      toast("Informe canal, produto e quantidade vendida.", "error");
+      return;
+    }
+    if (estado.cascoAtivo && quantidadeCasco <= 0) {
+      toast("Informe a quantidade de cascos vendidos.", "error");
+      return;
+    }
+    if (quantidadeCasco > quantidade) {
+      toast("A quantidade de cascos não pode superar a quantidade vendida.", "error");
+      return;
+    }
+
+    const textoCasco = quantidadeCasco > 0 ? `\nCascos vendidos: ${quantidadeCasco}` : "\nVenda com troca: sem venda de casco";
+    if (!window.confirm(`Confirmar venda?\n\nCanal: ${canal}\nProduto: ${produto}\nQuantidade: ${quantidade}${textoCasco}`)) return;
+
+    setBusy(true, ui.saveSaleButton);
+    try {
+      const retorno = await rpc("registrar_venda_mvp", {
+        p_revenda_id: estado.revenda.id,
+        p_data_operacional: dataOperacional(),
+        p_canal_nome: canal,
+        p_produto_codigo: produto,
+        p_quantidade_liquido: quantidade,
+        p_quantidade_casco: quantidadeCasco
+      });
+      ui.saleResultTitle.textContent = "Venda registrada";
+      ui.saleResult.innerHTML = `
+        <div class="table-row"><strong>Canal</strong><span>${escapeHtml(canal)}</span></div>
+        <div class="table-row"><strong>Produto</strong><span>${escapeHtml(produto)}</span></div>
+        <div class="table-row"><strong>Quantidade vendida</strong><span class="ok">${escapeHtml(quantidade)}</span></div>
+        <div class="table-row"><strong>Cascos vendidos</strong><span>${escapeHtml(quantidadeCasco)}</span></div>
+        <div class="table-row"><strong>Mensagem</strong><span>${escapeHtml(retorno?.mensagem || "Venda registrada com sucesso.")}</span></div>
+      `;
+      ui.saleResultCard.classList.remove("hidden");
+      ui.saleQty.value = "";
+      setCascoAtivo(false);
+      estado.ultimoEstoque = null;
+      toast(retorno?.mensagem || "Venda registrada.", "success");
+      await consultarStatus();
+    } catch (error) {
+      const mensagem = friendlyError(error);
+      ui.saleResultTitle.textContent = "Venda não registrada";
+      ui.saleResult.innerHTML = `
+        <div class="table-row"><strong>Resultado</strong><span class="danger">Operação bloqueada</span></div>
+        <div class="table-row"><strong>Motivo</strong><span class="danger">${escapeHtml(mensagem)}</span></div>
+        <div class="table-row"><strong>Estoque</strong><span>Sem alteração</span></div>
+      `;
+      ui.saleResultCard.classList.remove("hidden");
+      toast(mensagem, "error");
+      log("Venda bloqueada", mensagem);
+    } finally {
+      setBusy(false, ui.saveSaleButton);
+    }
+  }
+
+  function normalizarItens(retorno) {
+    if (Array.isArray(retorno)) return retorno;
+    if (Array.isArray(retorno?.itens)) return retorno.itens;
+    if (Array.isArray(retorno?.resultado)) return retorno.resultado;
+    return [];
+  }
+
+  async function consultarEstoque() {
+    setBusy(true, ui.queryStockButton);
+    ui.stockList.innerHTML = '<p class="muted">Consultando estoque...</p>';
+    try {
+      const retorno = await rpc("consultar_estoque_mvp", {
