@@ -1,0 +1,235 @@
+        p_revenda_id: estado.revenda.id,
+        p_data_operacional: dataOperacional()
+      });
+      const itens = normalizarItens(retorno);
+      if (!itens.length) throw new Error("O banco não retornou os produtos do estoque.");
+      estado.ultimoEstoque = itens;
+      ui.stockList.innerHTML = itens.map((item) => `
+        <div class="stock-card">
+          <div class="stock-card-head"><strong>${escapeHtml(item.produto || item.produto_codigo || item.codigo)}</strong><span>${escapeHtml(item.nome || "")}</span></div>
+          <div class="stock-numbers">
+            <div><span>Cheios</span><b>${escapeHtml(item.cheios_calculados ?? item.cheios ?? 0)}</b></div>
+            <div><span>Vazios</span><b>${escapeHtml(item.vazios_calculados ?? item.vazios ?? 0)}</b></div>
+            <div><span>Total</span><b>${escapeHtml(item.total_calculado ?? ((Number(item.cheios_calculados ?? item.cheios ?? 0)) + Number(item.vazios_calculados ?? item.vazios ?? 0)))}</b></div>
+          </div>
+        </div>
+      `).join("");
+      toast("Estoque consultado.", "success");
+    } catch (error) {
+      ui.stockList.innerHTML = `<p class="danger">${escapeHtml(friendlyError(error))}</p>`;
+      toast(friendlyError(error), "error");
+      log("Erro ao consultar estoque", friendlyError(error));
+    } finally {
+      setBusy(false, ui.queryStockButton);
+    }
+  }
+
+  function renderFechamento(retorno) {
+    const itens = normalizarItens(retorno);
+    const status = statusNormalizado(retorno) === "nao_consultado"
+      ? String(retorno?.status_fechamento || retorno?.status || "indefinido").toLowerCase()
+      : statusNormalizado(retorno);
+
+    if (!itens.length) {
+      ui.closingItems.innerHTML = `
+        <div class="table-like">
+          <div class="table-row"><strong>Status</strong><span class="${status.includes("inconsistente") ? "danger" : "ok"}">${escapeHtml(status)}</span></div>
+          <div class="table-row"><strong>Mensagem</strong><span>${escapeHtml(retorno?.mensagem || "Fechamento processado.")}</span></div>
+        </div>
+      `;
+      return;
+    }
+
+    ui.closingItems.innerHTML = itens.map((item) => {
+      const itemStatus = String(item.status || "").toLowerCase();
+      const conferido = itemStatus === "conferido" || (Number(item.diferenca_cheios || 0) === 0 && Number(item.diferenca_vazios || 0) === 0 && Number(item.diferenca_total || 0) === 0);
+      return `
+        <div class="closing-card">
+          <div class="closing-card-head"><strong>${escapeHtml(item.produto || item.produto_codigo || item.codigo || "Produto")}</strong><span class="${conferido ? "ok" : "danger"}">${conferido ? "conferido" : "inconsistente"}</span></div>
+          <div class="closing-diffs">
+            <div><span>Cheios: físico / calculado</span><strong>${escapeHtml(item.cheios_fisicos ?? "-")} / ${escapeHtml(item.cheios_calculados ?? "-")}</strong></div>
+            <div><span>Vazios: físico / calculado</span><strong>${escapeHtml(item.vazios_fisicos ?? "-")} / ${escapeHtml(item.vazios_calculados ?? "-")}</strong></div>
+            <div><span>Diferença de cheios</span><strong class="${Number(item.diferenca_cheios || 0) === 0 ? "ok" : "danger"}">${escapeHtml(item.diferenca_cheios ?? "-")}</strong></div>
+            <div><span>Diferença de vazios</span><strong class="${Number(item.diferenca_vazios || 0) === 0 ? "ok" : "danger"}">${escapeHtml(item.diferenca_vazios ?? "-")}</strong></div>
+            <div><span>Diferença total</span><strong class="${Number(item.diferenca_total || 0) === 0 ? "ok" : "danger"}">${escapeHtml(item.diferenca_total ?? "-")}</strong></div>
+          </div>
+        </div>
+      `;
+    }).join("");
+  }
+
+  async function registrarFechamento() {
+    if (!operacaoLiberada()) {
+      toast("O início oficial do piloto ainda não foi autorizado.", "error");
+      return;
+    }
+    if (!["aberto", "inconsistente"].includes(estado.status)) {
+      toast("O fechamento só pode ser feito com o dia aberto ou inconsistente.", "error");
+      return;
+    }
+    let itens;
+    try {
+      itens = lerContagem("closing");
+    } catch (error) {
+      toast(friendlyError(error), "error");
+      return;
+    }
+    const resumo = itens.map((item) => `${item.codigo}: ${item.cheios} cheios / ${item.vazios} vazios`).join("\n");
+    if (!window.confirm(`Confirmar contagem física do fechamento?\n\n${resumo}\n\nO calculado será mostrado somente depois da confirmação.`)) return;
+
+    setBusy(true, ui.saveClosingButton);
+    try {
+      const retorno = await rpc("registrar_fechamento_mvp", {
+        p_revenda_id: estado.revenda.id,
+        p_data_operacional: dataOperacional(),
+        p_itens: itens
+      });
+      ui.closingResultCard.classList.remove("hidden");
+      renderFechamento(retorno);
+      const status = String(retorno?.status_dia || retorno?.status_fechamento || retorno?.status || "").toLowerCase();
+      if (status === "fechado" || status === "conferido") {
+        toast("Estoque fechado, turno encerrado.", "success");
+      } else {
+        toast("Estoque inconsistente. Revise as diferenças apresentadas.", "error");
+      }
+      await consultarStatus();
+    } catch (error) {
+      toast(friendlyError(error), "error");
+      log("Erro no fechamento", friendlyError(error));
+    } finally {
+      setBusy(false, ui.saveClosingButton);
+    }
+  }
+
+  async function registrarCorrecao() {
+    if (!operacaoLiberada()) {
+      toast("O início oficial do piloto ainda não foi autorizado.", "error");
+      return;
+    }
+    const canal = ui.correctionChannel.value;
+    const produto = ui.correctionProduct.value;
+    const quantidade = numeroInteiroPositivo(ui.correctionQty.value);
+    if (estado.status !== "inconsistente") {
+      toast("A correção só é liberada quando o dia está inconsistente.", "error");
+      return;
+    }
+    if (!canal || !produto || quantidade <= 0) {
+      toast("Informe canal, produto e quantidade da correção.", "error");
+      return;
+    }
+    if (!window.confirm(`Confirmar correção?\n\nCanal: ${canal}\nProduto: ${produto}\nQuantidade: ${quantidade}\nMotivo: venda com casco não lançada.`)) return;
+
+    setBusy(true, ui.runCorrectionButton);
+    try {
+      const retorno = await rpc("registrar_correcao_venda_casco_mvp", {
+        p_revenda_id: estado.revenda.id,
+        p_data_operacional: dataOperacional(),
+        p_canal_nome: canal,
+        p_produto_codigo: produto,
+        p_quantidade: quantidade
+      });
+      ui.correctionResult.innerHTML = `
+        <div class="table-row"><strong>Resultado</strong><span class="ok">Correção registrada</span></div>
+        <div class="table-row"><strong>Canal</strong><span>${escapeHtml(canal)}</span></div>
+        <div class="table-row"><strong>Produto</strong><span>${escapeHtml(produto)}</span></div>
+        <div class="table-row"><strong>Quantidade</strong><span>${escapeHtml(quantidade)}</span></div>
+        <div class="table-row"><strong>Mensagem</strong><span>${escapeHtml(retorno?.mensagem || "Volte ao fechamento e confira novamente.")}</span></div>
+      `;
+      ui.correctionResultCard.classList.remove("hidden");
+      ui.correctionQty.value = "";
+      estado.ultimoEstoque = null;
+      toast(retorno?.mensagem || "Correção registrada. Refaça o fechamento.", "success");
+      await consultarStatus();
+    } catch (error) {
+      const mensagem = friendlyError(error);
+      ui.correctionResult.innerHTML = `
+        <div class="table-row"><strong>Resultado</strong><span class="danger">Correção não registrada</span></div>
+        <div class="table-row"><strong>Motivo</strong><span class="danger">${escapeHtml(mensagem)}</span></div>
+      `;
+      ui.correctionResultCard.classList.remove("hidden");
+      toast(mensagem, "error");
+      log("Erro na correção", mensagem);
+    } finally {
+      setBusy(false, ui.runCorrectionButton);
+    }
+  }
+
+  async function consultarVendas() {
+    setBusy(true, ui.querySalesButton);
+    ui.salesList.innerHTML = '<p class="muted">Consultando vendas...</p>';
+    try {
+      const retorno = await rpc("consultar_vendas_dia_mvp", {
+        p_revenda_id: estado.revenda.id,
+        p_data_operacional: dataOperacional()
+      });
+      const itens = Array.isArray(retorno) ? retorno : [];
+      if (!itens.length) {
+        ui.salesList.innerHTML = '<p class="muted">Nenhuma venda registrada nesta data.</p>';
+        toast("Nenhuma venda registrada nesta data.");
+        return;
+      }
+      ui.salesList.innerHTML = itens.map((item) => {
+        const dataHora = item.data_hora ? new Date(item.data_hora).toLocaleString("pt-BR") : "";
+        return `
+          <div class="sales-card">
+            <div class="sales-card-head"><strong>${escapeHtml(item.produto_codigo || item.produto || item.codigo)}</strong><span>${escapeHtml(dataHora)}</span></div>
+            <div class="sales-details">
+              <div><span>Canal</span><strong>${escapeHtml(item.canal_venda || "-")}</strong></div>
+              <div><span>Quantidade vendida</span><strong>${escapeHtml(item.quantidade_liquido ?? 0)}</strong></div>
+              <div><span>Cascos vendidos</span><strong>${escapeHtml(item.quantidade_casco ?? 0)}</strong></div>
+              <div><span>Tipo</span><strong>${escapeHtml(item.tipo_lancamento || "venda")}</strong></div>
+            </div>
+          </div>
+        `;
+      }).join("");
+      toast("Vendas consultadas.", "success");
+    } catch (error) {
+      ui.salesList.innerHTML = `<p class="danger">${escapeHtml(friendlyError(error))}</p>`;
+      toast(friendlyError(error), "error");
+      log("Erro ao consultar vendas", friendlyError(error));
+    } finally {
+      setBusy(false, ui.querySalesButton);
+    }
+  }
+
+  function togglePassword(input, button) {
+    const mostrar = input.type === "password";
+    input.type = mostrar ? "text" : "password";
+    button.textContent = mostrar ? "Ocultar" : "Mostrar";
+    button.setAttribute("aria-pressed", mostrar ? "true" : "false");
+  }
+
+  function resetarResultadosAoMudarData() {
+    estado.status = "nao_consultado";
+    estado.statusRetorno = null;
+    estado.ultimoEstoque = null;
+    limparResultadoEntrada();
+    limparResultadoVenda();
+    ui.closingResultCard.classList.add("hidden");
+    ui.correctionResultCard.classList.add("hidden");
+    ui.stockList.innerHTML = '<p class="muted">Clique em consultar.</p>';
+    ui.salesList.innerHTML = '<p class="muted">Clique em consultar.</p>';
+    renderStatus();
+    showView("dashboard");
+  }
+
+  function ligarEventos() {
+    ui.loginForm.addEventListener("submit", entrar);
+    ui.passwordForm.addEventListener("submit", trocarSenha);
+    ui.toggleLoginPassword.addEventListener("click", () => togglePassword(ui.loginPassword, ui.toggleLoginPassword));
+    ui.toggleNewPassword.addEventListener("click", () => togglePassword(ui.newPassword, ui.toggleNewPassword));
+    ui.logoutButton.addEventListener("click", sair);
+    ui.refreshStatusButton.addEventListener("click", consultarStatus);
+    ui.operationDate.addEventListener("change", resetarResultadosAoMudarData);
+    $$('[data-view]').forEach((button) => button.addEventListener("click", () => {
+      if (!button.disabled) showView(button.dataset.view);
+    }));
+    ui.saveOpeningButton.addEventListener("click", registrarAbertura);
+    ui.entryQty.addEventListener("input", atualizarPreviewEntrada);
+    ui.saveEntryButton.addEventListener("click", registrarEntrada);
+    ui.toggleCascoButton.addEventListener("click", () => setCascoAtivo(!estado.cascoAtivo));
+    ui.saveSaleButton.addEventListener("click", registrarVenda);
+    ui.queryStockButton.addEventListener("click", consultarEstoque);
+    ui.saveClosingButton.addEventListener("click", registrarFechamento);
+    ui.runCorrectionButton.addEventListener("click", registrarCorrecao);
+    ui.querySalesButton.addEventListener("click", consultarVendas);
