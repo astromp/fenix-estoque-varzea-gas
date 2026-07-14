@@ -3,7 +3,8 @@
 **Projeto:** Fênix Estoque  
 **Revenda:** Várzea Gás — Várzea Paulista/SP  
 **Status:** procedimento aprovado por Marco  
-**Data do registro:** 11/07/2026
+**Data do registro:** 11/07/2026  
+**Atualização:** 14/07/2026 — inclusão do P05 confirmada por Marco
 
 ## Gatilho de retomada
 
@@ -20,6 +21,7 @@ Esse lançamento ocorrerá **uma única vez** e será o ponto de partida para to
 O levantamento inicial será feito, produto por produto, para:
 
 - P13;
+- P05;
 - P20;
 - P45;
 - Água.
@@ -96,11 +98,19 @@ Total de cascos permanece estável
 
 Essa regra não se aplica ao estoque inicial, pois o estoque inicial apenas registra a situação física já existente.
 
-## Atenção de consistência antes do lançamento real
+## Consistência confirmada antes do lançamento real
 
-Uma validação técnica anterior da abertura MVP trabalhou com cinco produtos: P13, P05, P20, P45 e Água.
+O cadastro, a função de abertura e o estoque inicial devem trabalhar com os mesmos cinco produtos:
 
-O escopo aprovado nesta etapa do estoque inicial menciona P13, P20, P45 e Água. Antes do lançamento real, confirmar se o P05 deverá ser incluído, para que o cadastro, a função de abertura e o estoque inicial permaneçam consistentes.
+```text
+P13
+P05
+P20
+P45
+Água
+```
+
+A inclusão do P05 no estoque inicial foi confirmada por Marco em 14/07/2026.
 
 ## Frase de retomada
 
